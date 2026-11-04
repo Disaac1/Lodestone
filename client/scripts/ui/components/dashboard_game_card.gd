@@ -213,31 +213,54 @@ func _update_status_and_actions(is_configured: bool, is_local: bool, owner_name:
 		config_gear_btn.disabled = false
 		main_action_btn.disabled = false
 
-		var steam_chk: Dictionary = status_info.get("steam_beta_status", {})
-		if is_configured and steam_chk.get("needs_downgrade", false):
-			status_label.text = "Beta Needed"
-			status_label.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
-			pill_bg = UITheme.COLOR_PILL_WARNING_BG
-			pill_border = UITheme.COLOR_PILL_WARNING_BORDER
+		var is_running: bool = status_info.get("is_running", false)
+		var proc_state: String = status_info.get("process_state", "")
 
-			main_action_btn.text = "Steam Beta Required"
-			main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
-		elif is_configured:
-			status_label.text = "Ready"
-			status_label.add_theme_color_override("font_color", UITheme.COLOR_SUCCESS_GREEN)
-			pill_bg = UITheme.COLOR_PILL_READY_BG
-			pill_border = UITheme.COLOR_PILL_READY_BORDER
+		if is_running:
+			if proc_state == "starting":
+				status_label.text = "Launching..."
+				status_label.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
+				pill_bg = UITheme.COLOR_PILL_WARNING_BG
+				pill_border = UITheme.COLOR_PILL_WARNING_BORDER
 
-			main_action_btn.text = "Launch"
-			main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_TEXT_LIGHT)
+				main_action_btn.disabled = true
+				main_action_btn.text = "Launching..."
+				main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
+			else:
+				status_label.text = "Running"
+				status_label.add_theme_color_override("font_color", UITheme.COLOR_ACCENT_CYAN)
+				pill_bg = UITheme.COLOR_PILL_RUNNING_BG
+				pill_border = UITheme.COLOR_PILL_RUNNING_BORDER
+
+				main_action_btn.disabled = true
+				main_action_btn.text = "Game Running"
+				main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_ACCENT_CYAN)
 		else:
-			status_label.text = "Setup Required"
-			status_label.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
-			pill_bg = UITheme.COLOR_PILL_WARNING_BG
-			pill_border = UITheme.COLOR_PILL_WARNING_BORDER
+			var steam_chk: Dictionary = status_info.get("steam_beta_status", {})
+			if is_configured and steam_chk.get("needs_downgrade", false):
+				status_label.text = "Beta Needed"
+				status_label.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
+				pill_bg = UITheme.COLOR_PILL_WARNING_BG
+				pill_border = UITheme.COLOR_PILL_WARNING_BORDER
 
-			main_action_btn.text = "Download / Setup"
-			main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_ACTION_BLUE)
+				main_action_btn.text = "Steam Beta Required"
+				main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
+			elif is_configured:
+				status_label.text = "Ready"
+				status_label.add_theme_color_override("font_color", UITheme.COLOR_SUCCESS_GREEN)
+				pill_bg = UITheme.COLOR_PILL_READY_BG
+				pill_border = UITheme.COLOR_PILL_READY_BORDER
+
+				main_action_btn.text = "Launch"
+				main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_TEXT_LIGHT)
+			else:
+				status_label.text = "Setup Required"
+				status_label.add_theme_color_override("font_color", UITheme.COLOR_WARNING_YELLOW)
+				pill_bg = UITheme.COLOR_PILL_WARNING_BG
+				pill_border = UITheme.COLOR_PILL_WARNING_BORDER
+
+				main_action_btn.text = "Download / Setup"
+				main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_ACTION_BLUE)
 	else:
 		config_gear_btn.visible = false
 		main_action_btn.disabled = true
@@ -266,6 +289,8 @@ func _style_fallback_banner(game_name: String) -> void:
 
 func _on_main_action_pressed() -> void:
 	if is_local_player:
+		if current_status_info.get("is_running", false):
+			return
 		if _is_currently_configured:
 			launch_pressed.emit(current_game_name)
 		else:

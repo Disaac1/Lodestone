@@ -602,6 +602,14 @@ func _on_open_folder_pressed() -> void:
 func _on_download_pressed() -> void:
 	var target_url: String = url_input.text.strip_edges()
 	if target_url == "":
+		if is_instance_valid(url_input) and url_input.placeholder_text.strip_edges() != "":
+			target_url = url_input.placeholder_text.strip_edges()
+		elif RomCatalogManager.DEFAULT_FALLBACK_URL != "":
+			target_url = RomCatalogManager.DEFAULT_FALLBACK_URL
+		if target_url != "" and is_instance_valid(url_input):
+			url_input.text = target_url
+
+	if target_url == "":
 		feedback_label.add_theme_color_override("font_color", Color(1, 0.4, 0.4))
 		feedback_label.text = "Please enter a valid URL."
 		return

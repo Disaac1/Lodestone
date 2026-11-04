@@ -281,11 +281,21 @@ func _connect_ui_signals() -> void:
 	launcher.download_progress_updated.connect(_on_launcher_download_progress_updated)
 	launcher.modding_status_updated.connect(_on_launcher_modding_status_updated)
 	launcher.overlay_dismiss_requested.connect(_on_launcher_overlay_dismiss_requested)
+	launcher.game_process_updated.connect(_on_launcher_game_process_updated)
+	launcher.game_process_crashed.connect(_on_launcher_game_process_crashed)
 
 func _on_launcher_config_loaded() -> void:
 	print("[Lobby] Launcher config updated from backend. Refreshing game statuses...")
 	if is_instance_valid(play_dashboard_view) and play_dashboard_view.has_method("refresh_launcher_statuses"):
 		play_dashboard_view.refresh_launcher_statuses(launcher)
+
+func _on_launcher_game_process_updated(_game_name: String, _is_running: bool) -> void:
+	if is_instance_valid(play_dashboard_view) and play_dashboard_view.has_method("refresh_launcher_statuses"):
+		play_dashboard_view.refresh_launcher_statuses(launcher)
+
+func _on_launcher_game_process_crashed(game_name: String, exit_code: int, reason: String) -> void:
+	print("[Lobby Error] Game process crashed for ", game_name, " (code: ", exit_code, "): ", reason)
+	_on_launcher_failed(game_name, reason)
 
 func _on_launch_overlay_cancellation_requested() -> void:
 	if not _tracker_operation_active:
@@ -701,6 +711,8 @@ func _disconnect_network_signals() -> void:
 
 func _exit_tree() -> void:
 	_disconnect_network_signals()
+	if is_instance_valid(launcher):
+		launcher.cleanup_running_processes()
 
 func _go_to_main_menu() -> void:
 	_disconnect_network_signals()

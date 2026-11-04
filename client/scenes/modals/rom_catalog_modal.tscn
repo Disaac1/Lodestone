@@ -181,7 +181,7 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "https://wayfinder.disaac1.com/roms.json"
+placeholder_text = "https://lodestone.disaac1.com/roms.json"
 
 [node name="DownloadBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox/HBox"]
 unique_name_in_owner = true

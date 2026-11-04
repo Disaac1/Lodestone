@@ -518,6 +518,14 @@ func _refresh_rom_catalog_status() -> void:
 func _on_rom_download_pressed() -> void:
 	var url: String = rom_url_input.text.strip_edges()
 	if url == "":
+		if is_instance_valid(rom_url_input) and rom_url_input.placeholder_text.strip_edges() != "":
+			url = rom_url_input.placeholder_text.strip_edges()
+		elif RomCatalogManager.DEFAULT_FALLBACK_URL != "":
+			url = RomCatalogManager.DEFAULT_FALLBACK_URL
+		if url != "" and is_instance_valid(rom_url_input):
+			rom_url_input.text = url
+
+	if url == "":
 		error_label.text = "Please enter a valid URL to download rom.json"
 		error_label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
 		return

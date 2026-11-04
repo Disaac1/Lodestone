@@ -3,6 +3,7 @@ extends SceneTree
 const GameIdentityResolverScript = preload("res://scripts/core/game_identity_resolver.gd")
 const GuidedSetupRegistryScript = preload("res://scripts/guided_setup/guided_setup_registry.gd")
 const DashboardGameCardScene = preload("res://scenes/components/dashboard_game_card.tscn")
+const BannerService = preload("res://scripts/core/banner_service.gd")
 
 var test_passed: bool = true
 var lobby: Control = null
@@ -133,6 +134,10 @@ func _run_suite() -> void:
 	# 4. DashboardGameCard Consistency
 	# -------------------------------------------------------------
 	print("\n[Test 4] Testing DashboardGameCard resolution consistency...")
+	var dummy_tex = ImageTexture.create_from_image(Image.create(1, 1, false, Image.FORMAT_RGBA8))
+	BannerService.set_cached_texture("pokemon_emerald", dummy_tex)
+	BannerService.set_cached_texture("symphony_of_the_night", dummy_tex)
+
 	var card_node = DashboardGameCardScene.instantiate()
 	root.add_child(card_node)
 
@@ -168,4 +173,5 @@ func _finish() -> void:
 	print("==================================================================")
 	if lobby:
 		lobby.queue_free()
+	await create_timer(0.2).timeout
 	quit(0 if test_passed else 1)

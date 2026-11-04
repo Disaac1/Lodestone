@@ -2,6 +2,7 @@ class_name GameLauncher
 extends RefCounted
 
 const LauncherUtils = preload("res://scripts/core/launcher_utils.gd")
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
 const ArchipelagoConfig = preload("res://scripts/core/archipelago_config.gd")
 const HostYamlEditorScript = preload("res://scripts/core/host_yaml_editor.gd")
 const LauncherConfigStoreScript = preload("res://scripts/core/launcher_config_store.gd")
@@ -13,6 +14,7 @@ const ToolInstallerScript = preload("res://scripts/core/tool_installer.gd")
 const FirmwareManagerScript = preload("res://scripts/core/firmware_manager.gd")
 const ConfigWriterServiceScript = preload("res://scripts/core/config_writer_service.gd")
 const ProcessLauncherScript = preload("res://scripts/core/process_launcher.gd")
+const ProcessWatcherScript = preload("res://scripts/core/process_watcher.gd")
 const PatchManagerScript = preload("res://scripts/core/patch_manager.gd")
 const RomArchiveServiceScript = preload("res://scripts/core/rom_archive_service.gd")
 const PackageInstallerScript = preload("res://scripts/core/package_installer.gd")
@@ -59,6 +61,11 @@ signal config_loaded()
 signal download_progress_updated(task: String, pct: float, dl_bytes: int, total_bytes: int, speed: float)
 signal modding_status_updated(msg: String, pct: int)
 signal overlay_dismiss_requested()
+signal game_process_started(game_name: String, pid: int)
+signal game_process_running(game_name: String, pid: int)
+signal game_process_stopped(game_name: String, exit_code: int)
+signal game_process_crashed(game_name: String, exit_code: int, reason: String)
+signal game_process_updated(game_name: String, is_running: bool)
 
 class AsyncCompletion extends RefCounted:
 	signal completed(ok: bool, val: String)
@@ -97,6 +104,7 @@ class LaunchContext:
 	var patch_path: String = ""
 	var server_url: String = ""
 	var process_id: int = -1
+	var companion_pids: Array = []
 	var is_cancelled: bool = false
 	
 	func _init(p_game: String, p_preset: Dictionary, p_node: Node) -> void:
@@ -127,9 +135,17 @@ var _pc_game_installer
 var _rom_download_service
 var _tracker_manager
 var _custom_world_sync_service
+var _process_watcher
 var _tool_installation_generation: int = 0
 
 func _init() -> void:
+	_process_watcher = ProcessWatcherScript.new()
+	_process_watcher.game_process_started.connect(func(g, p): emit_signal("game_process_started", g, p))
+	_process_watcher.game_process_running.connect(func(g, p): emit_signal("game_process_running", g, p))
+	_process_watcher.game_process_stopped.connect(func(g, c): emit_signal("game_process_stopped", g, c))
+	_process_watcher.game_process_crashed.connect(func(g, c, r): emit_signal("game_process_crashed", g, c, r))
+	_process_watcher.game_process_updated.connect(func(g, r, _s): emit_signal("game_process_updated", g, r))
+
 	_config_store = LauncherConfigStoreScript.new()
 	_config_store.tools = launcher_tools
 	_config_store.games = launcher_presets
@@ -1045,6 +1061,14 @@ func launch_game(node: Node, game_name: String) -> bool:
 			_update_modding_status(node, err_msg, 0)
 		return false
 
+	if is_game_running(game_name):
+		var err_msg: String = "Game '" + game_name + "' is already running."
+		Updater.log_message("LAUNCH", err_msg)
+		emit_signal("launch_failed", game_name, err_msg)
+		if is_instance_valid(node):
+			_update_modding_status(node, err_msg, 0)
+		return false
+
 	var preset: Dictionary = get_preset(game_name)
 	if preset.is_empty():
 		var err_msg: String = "No preset configuration found for " + game_name
@@ -1069,7 +1093,8 @@ func launch_game(node: Node, game_name: String) -> bool:
 		return false
 	if not await _pipeline_spawn_process(ctx):
 		return false
-	await _pipeline_monitor_post_launch(ctx)
+	if not await _pipeline_monitor_post_launch(ctx):
+		return false
 	
 	emit_signal("launch_completed", game_name, ctx.process_id)
 	return true
@@ -1517,7 +1542,19 @@ func _pipeline_spawn_process(ctx: LaunchContext) -> bool:
 
 	return false
 
-func _pipeline_monitor_post_launch(ctx: LaunchContext) -> void:
+func _pipeline_monitor_post_launch(ctx: LaunchContext) -> bool:
+	if _process_watcher:
+		_process_watcher.track_game(ctx.node, ctx.game_name, ctx.process_id, ctx.companion_pids, ctx.base_rom_path)
+		var is_alive: bool = await _process_watcher.verify_initial_liveness(ctx.node, ctx.game_name, ctx.process_id)
+		if not is_alive:
+			var exit_code: int = _process_watcher.get_last_exit_code(ctx.game_name)
+			var err_msg: String = "Game process exited immediately after launch (exit code: %d)." % exit_code
+			Updater.log_message("ERROR", err_msg)
+			emit_signal("launch_failed", ctx.game_name, err_msg)
+			if is_instance_valid(ctx.node):
+				_update_modding_status(ctx.node, err_msg, 0)
+			return false
+
 	var tracking_cfg: Dictionary = ctx.preset.get("patch_progress_tracking", {})
 	var has_tracking: bool = not tracking_cfg.is_empty()
 	if has_tracking and ctx.patch_path != "":
@@ -1529,6 +1566,7 @@ func _pipeline_monitor_post_launch(ctx: LaunchContext) -> void:
 		if is_instance_valid(ctx.node) and ctx.node.get_tree():
 			await ctx.node.get_tree().create_timer(0.8).timeout
 		_dismiss_modding_overlay(ctx.node)
+	return true
 
 func _async_ensure_rom(node: Node, rom_name: String, force_redownload: bool = false) -> Dictionary:
 	return await ensure_rom_exists_or_download(node, rom_name, Callable(), force_redownload)
@@ -1579,11 +1617,26 @@ func execute_preset_launch(node: Node, game_name: String, preset_config: Diction
 
 func get_game_launch_status(game_name: String) -> Dictionary:
 	var preset: Dictionary = get_preset(game_name)
+	var stored_path: String = get_saved_path(game_name, preset)
+
+	if is_game_running(game_name):
+		var proc_state: String = get_game_process_state(game_name)
+		var status_text_str: String = "● Launching..." if proc_state == "starting" else "● Running"
+		var status_col: Color = UITheme.COLOR_WARNING_YELLOW if proc_state == "starting" else UITheme.COLOR_ACCENT_CYAN
+		return {
+			"is_configured": true,
+			"is_running": true,
+			"process_state": proc_state,
+			"process_id": get_game_pid(game_name),
+			"path": stored_path,
+			"is_default_location": false,
+			"status_text": status_text_str,
+			"status_color": status_col
+		}
+
 	var launch_mode: String = preset.get("launch_mode", "direct")
 	var req_rom: String = preset.get("required_rom", "")
 	var is_rom_game: bool = (req_rom != "" or launch_mode == "patch_rom" or preset.get("is_rom", false))
-
-	var stored_path: String = get_saved_path(game_name, preset)
 
 	if stored_path != "" and FileAccess.file_exists(stored_path):
 		var is_invalid_for_rom: bool = is_rom_game and (stored_path.to_lower().ends_with(".exe"))
@@ -1680,6 +1733,25 @@ func get_game_launch_status(game_name: String) -> Dictionary:
 
 func is_game_configured(game_name: String) -> bool:
 	return get_game_launch_status(game_name).get("is_configured", false)
+
+func is_game_running(game_name: String) -> bool:
+	return _process_watcher.is_game_running(game_name) if _process_watcher else false
+
+func get_game_process_state(game_name: String) -> String:
+	return _process_watcher.get_game_state(game_name) if _process_watcher else "idle"
+
+func get_game_pid(game_name: String) -> int:
+	return _process_watcher.get_game_pid(game_name) if _process_watcher else -1
+
+func get_running_processes() -> Dictionary:
+	return _process_watcher.get_all_running_games() if _process_watcher else {}
+
+func terminate_game_process(game_name: String) -> bool:
+	return _process_watcher.terminate_game_process(game_name) if _process_watcher else false
+
+func cleanup_running_processes() -> void:
+	if _process_watcher:
+		_process_watcher.stop_watching_all()
 
 
 # =====================================================================
@@ -1806,7 +1878,9 @@ func _spawn_companion_client_tool_if_needed(ctx: LaunchContext) -> void:
 			client_args.append("--connect")
 			client_args.append(ctx.server_url)
 		print("[Launcher] Spawning companion client tool: ", abs_client, " args: ", client_args)
-		OS.create_process(abs_client, client_args)
+		var client_pid: int = OS.create_process(abs_client, client_args)
+		if client_pid > 0:
+			ctx.companion_pids.append(client_pid)
 
 func _spawn_sni_emulator_companion(ctx: LaunchContext) -> void:
 	if ctx.emulator_exe_path == "" or not FileAccess.file_exists(ctx.emulator_exe_path):
@@ -1856,4 +1930,6 @@ func _spawn_sni_emulator_companion(ctx: LaunchContext) -> void:
 
 	var abs_emu: String = ProjectSettings.globalize_path(ctx.emulator_exe_path)
 	print("[Launcher] Auto-launching companion emulator (BizHawk) for SNI: ", abs_emu, " args: ", emu_args)
-	OS.create_process(abs_emu, emu_args)
+	var emu_pid: int = OS.create_process(abs_emu, emu_args)
+	if emu_pid > 0:
+		ctx.companion_pids.append(emu_pid)

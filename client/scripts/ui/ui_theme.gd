@@ -46,6 +46,8 @@ const COLOR_PILL_READY_BG: Color = Color(0.08, 0.18, 0.13, 0.8)
 const COLOR_PILL_READY_BORDER: Color = Color(0.16, 0.65, 0.38, 0.7)
 const COLOR_PILL_WARNING_BG: Color = Color(0.2, 0.15, 0.05, 0.8)
 const COLOR_PILL_WARNING_BORDER: Color = Color(0.8, 0.55, 0.1, 0.7)
+const COLOR_PILL_RUNNING_BG: Color = Color(0.06, 0.16, 0.24, 0.8)
+const COLOR_PILL_RUNNING_BORDER: Color = Color(0.2, 0.7, 0.95, 0.7)
 const COLOR_PILL_REMOTE_BG: Color = Color(0.14, 0.1, 0.22, 0.8)
 const COLOR_PILL_REMOTE_BORDER: Color = Color(0.55, 0.35, 0.85, 0.7)
 
