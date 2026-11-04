@@ -42,10 +42,20 @@ export async function downloadFromUpstream(url: string, destPath: string): Promi
       return false;
     }
     const arrayBuffer = await res.arrayBuffer();
+    const buf = Buffer.from(arrayBuffer);
+    if (destPath.endsWith('.apworld')) {
+      try {
+        const zip = new AdmZip(buf);
+        if (zip.getEntries().length === 0) throw new Error('Archive contains no files');
+      } catch (zipErr: any) {
+        console.error(`[CustomWorlds] Downloaded file from ${url} is not a valid zip archive:`, zipErr.message);
+        return false;
+      }
+    }
     if (!fs.existsSync(path.dirname(destPath))) {
       fs.mkdirSync(path.dirname(destPath), { recursive: true });
     }
-    fs.writeFileSync(destPath, Buffer.from(arrayBuffer));
+    fs.writeFileSync(destPath, buf);
     console.log(`[CustomWorlds] Successfully cached package to: ${destPath}`);
     return true;
   } catch (err: any) {

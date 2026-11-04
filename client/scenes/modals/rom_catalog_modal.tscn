@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Theme" path="res://themes/main_theme.tres" id="1_theme"]
 [ext_resource type="Script" path="res://scripts/ui/modals/rom_catalog_modal.gd" id="2_script"]
@@ -14,6 +14,18 @@ corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_drawer"]
+bg_color = Color(0.08, 0.09, 0.13, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.24, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="RomCatalogModal" type="Control"]
 layout_mode = 3
@@ -43,7 +55,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PopupPanel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(720, 560)
+custom_minimum_size = Vector2(820, 560)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
@@ -56,146 +68,211 @@ theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="Center/PopupPanel/Margin"]
 layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderTop" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="Header" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+[node name="Title" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
 layout_mode = 2
-
-[node name="Title" type="Label" parent="Center/PopupPanel/Margin/VBox/Header"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.35, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 18
-text = "ROM Catalog Manager (rom.json)"
+text = "🎮 ROMs & Games Manager"
 
-[node name="Spacer" type="Control" parent="Center/PopupPanel/Margin/VBox/Header"]
+[node name="HeaderSpacer" type="Control" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="CloseBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/Header"]
+[node name="OpenFolderBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+tooltip_text = "Open games directory in Windows Explorer"
+text = "📂 Games Folder"
+
+[node name="ToggleSyncBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Toggle rom.json URL download & file import tools"
+text = "⚙️ Sync rom.json"
+
+[node name="RefreshBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+tooltip_text = "Refresh game statuses"
+text = "🔄"
+
+[node name="CloseBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 text = "✕"
 
-[node name="Subtitle" type="Label" parent="Center/PopupPanel/Margin/VBox"]
+[node name="HeaderBottom" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.6, 0.68, 1)
-theme_override_font_sizes/font_size = 12
-text = "Lodestone uses rom.json to automatically download, verify, and launch clean base ROMs for supported games."
-autowrap_mode = 2
+theme_override_constants/separation = 12
 
-[node name="PathRow" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="PathLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/PathRow"]
-unique_name_in_owner = true
+[node name="Subtitle" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
 theme_override_font_sizes/font_size = 11
-text = "Location: user://rom.json"
+text = "Manage base ROMs, game files, and auto-download links."
 text_overrun_behavior = 3
+clip_text = true
 
-[node name="OpenFolderBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/PathRow"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "📂 Open AppData Folder"
-
-[node name="HSeparator1" type="HSeparator" parent="Center/PopupPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="DownloadBox" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="DownloadLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/DownloadBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "DOWNLOAD / UPDATE FROM URL"
-
-[node name="DownloadRow" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox/DownloadBox"]
+[node name="StatsBox" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox/HeaderBottom"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="UrlInput" type="LineEdit" parent="Center/PopupPanel/Margin/VBox/DownloadBox/DownloadRow"]
+[node name="TotalSizeBadge" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "💾 Space: 0 B"
+
+[node name="InstalledCountBadge" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "🎮 0/0 Installed"
+
+[node name="ConfiguredBadge" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+text = "🌐 0 in rom.json"
+
+[node name="SyncDrawer" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="SyncPanel" type="PanelContainer" parent="Center/PopupPanel/Margin/VBox/SyncDrawer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_drawer")
+
+[node name="Margin" type="MarginContainer" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 11
+text = "DOWNLOAD / UPDATE ROM CATALOG (rom.json)"
+
+[node name="HBox" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="UrlInput" type="LineEdit" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "https://wayfinder.disaac1.com/roms.json"
 
-[node name="DownloadBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/DownloadBox/DownloadRow"]
+[node name="DownloadBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox/HBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 text = "Download & Update"
 
-[node name="FeedbackLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/DownloadBox"]
+[node name="LoadLocalBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "📁 Load File..."
+
+[node name="FeedbackLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/SyncDrawer/SyncPanel/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
 theme_override_font_sizes/font_size = 11
 
-[node name="LocalRow" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="LoadLocalBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/LocalRow"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
-text = "📁 Load rom.json from PC..."
-
-[node name="StatusBadge" type="Label" parent="Center/PopupPanel/Margin/VBox/LocalRow"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
-theme_override_font_sizes/font_size = 12
-horizontal_alignment = 2
-
-[node name="HSeparator2" type="HSeparator" parent="Center/PopupPanel/Margin/VBox"]
-layout_mode = 2
-
-[node name="FilterBox" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+[node name="FilterRow" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SearchInput" type="LineEdit" parent="Center/PopupPanel/Margin/VBox/FilterBox"]
+[node name="SearchInput" type="LineEdit" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "Search loaded ROMs & games..."
+placeholder_text = "Search games or ROMs (e.g. Pokemon, Luigi, Mario)..."
+clear_button_enabled = true
 
-[node name="RefreshBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterBox"]
+[node name="FilterAllBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "🔄 Refresh"
+text = "All Games"
+
+[node name="FilterInstalledBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Installed Only"
+
+[node name="FilterNotInstalledBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Not Installed"
+
+[node name="FilterDownloadableBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Auto-Download Available"
+
+[node name="HSeparator" type="HSeparator" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
 
 [node name="Scroll" type="ScrollContainer" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 3
 
 [node name="EntriesContainer" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
-[node name="BottomRow" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+[node name="EmptyLabel" type="Label" parent="Center/PopupPanel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+text = "No games matched your search."
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
 
-[node name="SummaryLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/BottomRow"]
+[node name="Footer" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PathInfoLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/Footer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.5, 0.55, 0.6, 1)
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
 theme_override_font_sizes/font_size = 11
+text = "Games directory: user://games"
+text_overrun_behavior = 3
+clip_text = true
 
-[node name="DoneBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/BottomRow"]
+[node name="DoneBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/Footer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 36)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
 text = "Done"
 
@@ -208,3 +285,59 @@ ok_button_text = "Open"
 file_mode = 0
 access = 2
 filters = PackedStringArray("*.json ; JSON Files")
+
+[node name="GameFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Locate Game File"
+initial_position = 2
+size = Vector2i(700, 500)
+ok_button_text = "Select"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.gba, *.rvz, *.iso, *.nds, *.bin, *.cue, *.sfc, *.smc, *.z64, *.n64, *.exe ; Supported Game Formats", "*.* ; All Files")
+
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm"
+initial_position = 2
+size = Vector2i(450, 180)
+ok_button_text = "Confirm"
+cancel_button_text = "Cancel"
+
+[node name="SetUrlDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Set Game Download URL"
+initial_position = 2
+size = Vector2i(550, 180)
+ok_button_text = "Save URL"
+cancel_button_text = "Cancel"
+
+[node name="Margin" type="MarginContainer" parent="SetUrlDialog"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -49.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="SetUrlDialog/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SetUrlLabel" type="Label" parent="SetUrlDialog/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enter direct download URL:"
+
+[node name="SetUrlInput" type="LineEdit" parent="SetUrlDialog/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "https://example.com/game.zip"
+clear_button_enabled = true

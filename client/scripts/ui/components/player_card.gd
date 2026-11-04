@@ -4,6 +4,9 @@ signal game_clicked(game_name: String)
 signal add_game_clicked()
 signal kick_clicked(user_id: String, user_name: String)
 
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
+const GuidedSetupRegistry = preload("res://scripts/guided_setup/guided_setup_registry.gd")
+
 @onready var name_label: Label = %NameLabel
 @onready var host_badge: Label = %HostBadge
 @onready var status_badge: Label = %StatusBadge
@@ -11,32 +14,30 @@ signal kick_clicked(user_id: String, user_name: String)
 @onready var kick_btn: Button = %KickBtn
 
 var player_data: Dictionary = {}
+var local_user_id: String = ""
+var local_is_host: bool = false
 var is_local: bool = false
 var is_host: bool = false
 
-func _ensure_nodes() -> void:
-	if name_label == null:
-		name_label = get_node_or_null("%NameLabel")
-	if host_badge == null:
-		host_badge = get_node_or_null("%HostBadge")
-	if status_badge == null:
-		status_badge = get_node_or_null("%StatusBadge")
-	if games_container == null:
-		games_container = get_node_or_null("%GamesContainer")
-	if kick_btn == null:
-		kick_btn = get_node_or_null("%KickBtn")
+func _ready() -> void:
+	if not player_data.is_empty():
+		_bind_ui()
 
-func setup(p_data: Dictionary, local_user_id: String, local_is_host: bool) -> void:
-	_ensure_nodes()
+func setup(p_data: Dictionary, p_local_user_id: String, p_local_is_host: bool) -> void:
 	player_data = p_data
+	local_user_id = p_local_user_id
+	local_is_host = p_local_is_host
 	var p_id: String = p_data.get("userId", "")
-	var p_name: String = p_data.get("name", "Unknown")
-	var p_is_host: bool = p_data.get("isHost", false)
-	var is_connected: bool = p_data.get("isConnected", true)
-	var games: Array = p_data.get("games", [])
-	
 	is_local = (p_id == local_user_id)
-	is_host = p_is_host
+	is_host = p_data.get("isHost", false)
+
+	if is_node_ready():
+		_bind_ui()
+
+func _bind_ui() -> void:
+	var p_name: String = player_data.get("name", "Unknown")
+	var is_connected: bool = player_data.get("isConnected", true)
+	var games: Array = player_data.get("games", [])
 
 	# 1. Name and Host badge
 	name_label.text = p_name + (" (You)" if is_local else "")
@@ -66,7 +67,8 @@ func setup(p_data: Dictionary, local_user_id: String, local_is_host: bool) -> vo
 		var badge: Button = Button.new()
 		badge.custom_minimum_size = Vector2(44, 32)
 		badge.focus_mode = Control.FOCUS_NONE
-		badge.tooltip_text = g_name + (" (Click to configure)" if is_local else "")
+		var est_checks: int = GuidedSetupRegistry.get_estimated_checks(str(g_name))
+		badge.tooltip_text = "%s (~%d checks)%s" % [str(g_name), est_checks, " (Click to configure)" if is_local else ""]
 		
 		# Abbreviation / short tag
 		var words: PackedStringArray = str(g_name).split(" ")

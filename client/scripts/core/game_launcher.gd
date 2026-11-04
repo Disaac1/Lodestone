@@ -20,6 +20,7 @@ const PcGameInstallerScript = preload("res://scripts/core/pc_game_installer.gd")
 const RomDownloadServiceScript = preload("res://scripts/core/rom_download_service.gd")
 const TrackerManagerScript = preload("res://scripts/core/tracker_manager.gd")
 const CustomWorldSyncServiceScript = preload("res://scripts/core/custom_world_sync_service.gd")
+const ServerUrlHelper = preload("res://scripts/core/server_url_helper.gd")
 
 # --- CONSTANTS ---
 const DEFAULT_ARCHIPELAGO_DOWNLOAD_URL: String = "/tools/archipelago.zip"
@@ -33,6 +34,7 @@ const USER_BASE_ROMS_DIR: String = "user://base_roms"
 const USER_GAMES_DIR: String = "user://games"
 const USER_SAVES_DIR: String = "user://saves"
 const USER_PATHS_CONFIG_PATH: String = "user://paths_config.json"
+const USER_HASH_CACHE_PATH: String = "user://file_hash_cache.json"
 
 # --- LAUNCH PIPELINE ENUM & SIGNALS ---
 enum LaunchStage {
@@ -104,6 +106,7 @@ class LaunchContext:
 		launch_mode = preset.get("launch_mode", "direct")
 
 # State attributes
+static var _file_hash_cache: Dictionary = {}
 var launcher_tools: Dictionary = {}
 var launcher_presets: Dictionary = {}
 var paths_config: Dictionary = {}
@@ -333,7 +336,7 @@ func _cleanup_legacy_base_roms_dir() -> void:
 func _fuzzy_search_matching_rom(candidate_directories: Array[String], rom_name: String, target_extension: String) -> String:
 	return _rom_catalog_service._fuzzy_search_matching_rom(candidate_directories, rom_name, target_extension)
 
-func ensure_rom_exists_or_download(node: Node, rom_name: String, callback: Callable = Callable()) -> Dictionary:
+func ensure_rom_exists_or_download(node: Node, rom_name: String, callback: Callable = Callable(), force_redownload: bool = false) -> Dictionary:
 	if rom_name.strip_edges() == "":
 		print("[Launcher] Game specifies no required ROM. Skipping ROM download/check.")
 		if callback.is_valid():
@@ -344,7 +347,7 @@ func ensure_rom_exists_or_download(node: Node, rom_name: String, callback: Calla
 	var target_game_dir: String = get_game_dir(game_slug)
 	var target_rom_path: String = target_game_dir.path_join(rom_name)
 	
-	var existing_rom: String = find_existing_base_rom(rom_name)
+	var existing_rom: String = "" if force_redownload else find_existing_base_rom(rom_name)
 	var comp = AsyncCompletion.new()
 	var internal_cb = func(ok: bool, val: String):
 		if callback.is_valid():
@@ -354,6 +357,9 @@ func ensure_rom_exists_or_download(node: Node, rom_name: String, callback: Calla
 	if existing_rom != "":
 		_handle_existing_base_rom(node, existing_rom, target_rom_path, rom_name, internal_cb)
 	else:
+		if force_redownload and FileAccess.file_exists(target_rom_path):
+			DirAccess.remove_absolute(target_rom_path)
+			print("[Launcher] Removed existing ROM file for forced redownload: ", target_rom_path)
 		var download_entry: Dictionary = get_rom_download_entry(rom_name)
 		if download_entry.is_empty():
 			for g_name in launcher_presets.keys():
@@ -511,6 +517,334 @@ func ensure_tool_installed_or_download(node: Node, tool_name: String, download_u
 		return _tool_manager.install_success(comp.val)
 	return _tool_manager.install_failure(comp.val)
 
+func get_all_tools_status(allow_deep_search: bool = false) -> Dictionary:
+	return _tool_manager.get_all_tools_status(launcher_tools, allow_deep_search)
+
+func get_tool_status(tool_key: String, allow_deep_search: bool = false) -> Dictionary:
+	var tool_def: Dictionary = launcher_tools.get(tool_key, {})
+	return _tool_manager.get_tool_status(tool_key, tool_def, allow_deep_search)
+
+func uninstall_tool(tool_key: String) -> Dictionary:
+	var tool_def: Dictionary = launcher_tools.get(tool_key, {})
+	return _tool_manager.uninstall_tool(tool_key, tool_def)
+
+func unlink_external_tool(tool_key: String) -> Dictionary:
+	return _tool_manager.unlink_external_tool(tool_key)
+
+func set_external_tool_path(tool_key: String, file_path: String) -> Dictionary:
+	var tool_def: Dictionary = launcher_tools.get(tool_key, {})
+	return _tool_manager.set_external_tool_path(tool_key, tool_def, file_path)
+
+func open_tools_folder() -> void:
+	DirAccess.make_dir_recursive_absolute(USER_TOOLS_DIR)
+	OS.shell_open(ProjectSettings.globalize_path(USER_TOOLS_DIR))
+
+func open_tool_folder(tool_key: String) -> void:
+	var tool_def: Dictionary = launcher_tools.get(tool_key, {})
+	var subfolders: Array = tool_def.get("sub_folders", [])
+	var sf: String = str(subfolders[0]) if not subfolders.is_empty() else str(tool_def.get("name", tool_key))
+	var target_dir: String = USER_TOOLS_DIR.path_join(sf)
+	if not DirAccess.dir_exists_absolute(target_dir):
+		target_dir = USER_TOOLS_DIR
+	OS.shell_open(ProjectSettings.globalize_path(target_dir))
+
+func install_tool(node: Node, tool_key: String, callback: Callable = Callable()) -> Dictionary:
+	var tool_def: Dictionary = launcher_tools.get(tool_key, {})
+	if tool_def.is_empty():
+		return {"success": false, "error": "Unknown tool definition for: " + tool_key}
+	var tool_name: String = str(tool_def.get("name", tool_key))
+	var download_url: String = str(tool_def.get("download_url", ""))
+	var subfolders: Array = tool_def.get("sub_folders", [])
+	var subfolder: String = str(subfolders[0]) if not subfolders.is_empty() else tool_name
+	var target_exe: String = str(tool_def.get("executable", ""))
+	var fallback_url: String = str(tool_def.get("fallback_download_url", ""))
+	var sha256_expected: String = str(tool_def.get("sha256", ""))
+	return await ensure_tool_installed_or_download(
+		node, tool_name, download_url, subfolder, target_exe, callback, fallback_url, -1, sha256_expected, true
+	)
+
+func reinstall_tool(node: Node, tool_key: String, callback: Callable = Callable()) -> Dictionary:
+	var tool_def: Dictionary = launcher_tools.get(tool_key, {})
+	if tool_def.is_empty():
+		return {"success": false, "error": "Unknown tool definition for: " + tool_key}
+	_tool_manager.uninstall_tool(tool_key, tool_def)
+	return await install_tool(node, tool_key, callback)
+
+static var _hash_cache_loaded: bool = false
+
+static func _load_file_hash_cache() -> void:
+	if FileAccess.file_exists(USER_HASH_CACHE_PATH):
+		var fa := FileAccess.open(USER_HASH_CACHE_PATH, FileAccess.READ)
+		if fa:
+			var parsed: Variant = JSON.parse_string(fa.get_as_text())
+			if parsed is Dictionary:
+				_file_hash_cache = parsed
+			fa.close()
+
+static func _save_file_hash_cache() -> void:
+	var fa := FileAccess.open(USER_HASH_CACHE_PATH, FileAccess.WRITE)
+	if fa:
+		fa.store_string(JSON.stringify(_file_hash_cache))
+		fa.close()
+
+static func clear_file_hash_cache(file_path: String = "") -> void:
+	if not _hash_cache_loaded:
+		_load_file_hash_cache()
+		_hash_cache_loaded = true
+
+	if file_path.is_empty():
+		_file_hash_cache.clear()
+	else:
+		var norm_p := ProjectSettings.globalize_path(file_path)
+		for k in _file_hash_cache.keys():
+			if k.begins_with(file_path) or k.begins_with(norm_p):
+				_file_hash_cache.erase(k)
+	_save_file_hash_cache()
+
+static func _get_or_compute_file_hash(file_path: String, algo: String) -> String:
+	if not _hash_cache_loaded:
+		_load_file_hash_cache()
+		_hash_cache_loaded = true
+
+	if file_path.is_empty() or not FileAccess.file_exists(file_path):
+		return ""
+	var norm_path: String = ProjectSettings.globalize_path(file_path)
+	var mtime: int = FileAccess.get_modified_time(norm_path)
+	var f_len: int = 0
+	var fa := FileAccess.open(norm_path, FileAccess.READ)
+	if fa:
+		f_len = fa.get_length()
+		fa.close()
+
+	var cache_key: String = "%s::%s" % [norm_path, algo]
+	if _file_hash_cache.has(cache_key):
+		var entry: Dictionary = _file_hash_cache[cache_key]
+		if entry.get("mtime", -1) == mtime and entry.get("size", -1) == f_len:
+			return entry.get("hash", "")
+
+	var computed_hash: String = ""
+	if algo == "md5":
+		computed_hash = FileAccess.get_md5(norm_path).to_lower()
+	elif algo == "sha256":
+		computed_hash = FileAccess.get_sha256(norm_path).to_lower()
+
+	if computed_hash != "":
+		_file_hash_cache[cache_key] = {
+			"mtime": mtime,
+			"size": f_len,
+			"hash": computed_hash
+		}
+		_save_file_hash_cache()
+	return computed_hash
+
+func get_game_status(game_name: String, allow_deep_search: bool = false) -> Dictionary:
+	var preset: Dictionary = get_preset(game_name)
+	var slug: String = get_game_slug(game_name)
+	var req_rom: String = str(preset.get("required_rom", ""))
+	var target_exe: String = str(preset.get("client_executable", preset.get("executable_name", preset.get("target_exe", ""))))
+	var game_dir: String = USER_GAMES_DIR.path_join(slug)
+
+	var dl_entry: Dictionary = get_rom_download_entry(game_name)
+	if dl_entry.is_empty() and req_rom != "":
+		dl_entry = get_rom_download_entry(req_rom)
+	if dl_entry.is_empty() and target_exe != "":
+		dl_entry = get_rom_download_entry(target_exe)
+	for alias in preset.get("rom_aliases", []):
+		if dl_entry.is_empty():
+			dl_entry = get_rom_download_entry(str(alias))
+		else:
+			break
+	if dl_entry.is_empty():
+		var p_url: String = str(preset.get("rom_download_url", "")).strip_edges()
+		if p_url != "":
+			dl_entry = {"url": p_url, "key": "", "encrypted": false}
+
+	var download_url: String = str(dl_entry.get("url", "")).strip_edges()
+	var has_download_url: bool = download_url != ""
+
+	var resolved_path: String = ""
+	if paths_config.has(game_name) and FileAccess.file_exists(paths_config[game_name]):
+		resolved_path = paths_config[game_name]
+	elif req_rom != "":
+		resolved_path = find_existing_base_rom(req_rom)
+	elif target_exe != "":
+		resolved_path = find_game_executable(target_exe, preset.get("sub_folders", []), preset.get("search_dirs", []), allow_deep_search)
+		if resolved_path == "" and DirAccess.dir_exists_absolute(game_dir):
+			var local_exe := game_dir.path_join(target_exe)
+			if FileAccess.file_exists(local_exe):
+				resolved_path = ProjectSettings.globalize_path(local_exe)
+
+	var is_installed: bool = (resolved_path != "" and FileAccess.file_exists(resolved_path))
+	var is_managed: bool = false
+	var size_bytes: int = 0
+
+	var user_games_base := ProjectSettings.globalize_path(USER_GAMES_DIR).replace("\\", "/").to_lower()
+	if is_installed:
+		var norm_p := resolved_path.replace("\\", "/").to_lower()
+		if norm_p.begins_with(user_games_base) or norm_p.contains("/games/"):
+			is_managed = true
+
+		var fa := FileAccess.open(resolved_path, FileAccess.READ)
+		if fa:
+			size_bytes = fa.get_length()
+			fa.close()
+	elif DirAccess.dir_exists_absolute(game_dir):
+		var dir_sz := ToolManager.get_dir_size_bytes(game_dir)
+		if dir_sz > 0:
+			size_bytes = dir_sz
+
+	var hash_valid: bool = true
+	var expected_hash: String = ""
+	var actual_hash: String = ""
+	var rom_hashes: Dictionary = preset.get("rom_hashes", {})
+	if rom_hashes.has("md5"):
+		expected_hash = str(rom_hashes["md5"]).strip_edges().to_lower()
+	elif rom_hashes.has("sha256"):
+		expected_hash = str(rom_hashes["sha256"]).strip_edges().to_lower()
+
+	if is_installed and expected_hash != "":
+		var algo: String = "md5" if rom_hashes.has("md5") else "sha256"
+		actual_hash = _get_or_compute_file_hash(resolved_path, algo)
+		if actual_hash != expected_hash:
+			hash_valid = false
+
+	var status_code: String = "NOT_INSTALLED"
+	if is_installed:
+		if not hash_valid:
+			status_code = "HASH_MISMATCH"
+		elif is_managed:
+			status_code = "INSTALLED"
+		else:
+			status_code = "EXTERNAL"
+	elif has_download_url:
+		status_code = "AVAILABLE"
+
+	return {
+		"game_name": game_name,
+		"slug": slug,
+		"required_rom": req_rom,
+		"target_exe": target_exe,
+		"preset": preset,
+		"download_url": download_url,
+		"has_download_url": has_download_url,
+		"download_entry": dl_entry,
+		"path": resolved_path,
+		"installed": is_installed,
+		"is_managed": is_managed,
+		"size_bytes": size_bytes,
+		"formatted_size": ToolManager.format_bytes(size_bytes),
+		"hash_valid": hash_valid,
+		"expected_hash": expected_hash,
+		"actual_hash": actual_hash,
+		"status_code": status_code,
+		"managed_dir": game_dir
+	}
+
+func get_all_games_status() -> Dictionary:
+	var result_list: Array[Dictionary] = []
+	var total_size_bytes: int = 0
+	var installed_count: int = 0
+	var seen_games: Dictionary = {}
+
+	for g_name in launcher_presets.keys():
+		seen_games[g_name] = true
+		var st := get_game_status(g_name, false)
+		result_list.append(st)
+		if st.installed:
+			installed_count += 1
+			total_size_bytes += int(st.size_bytes)
+
+	for cat_key in roms_catalog.keys():
+		if not seen_games.has(cat_key) and not cat_key.begins_with("default_"):
+			var matched_preset := false
+			for g_name in launcher_presets.keys():
+				if launcher_presets[g_name].get("required_rom", "") == cat_key:
+					matched_preset = true
+					break
+			if not matched_preset:
+				seen_games[cat_key] = true
+				var st := get_game_status(cat_key, false)
+				result_list.append(st)
+				if st.installed:
+					installed_count += 1
+					total_size_bytes += int(st.size_bytes)
+
+	return {
+		"games": result_list,
+		"total_games_size_bytes": total_size_bytes,
+		"formatted_total_size": ToolManager.format_bytes(total_size_bytes),
+		"installed_count": installed_count,
+		"total_count": result_list.size()
+	}
+
+func uninstall_game(game_name: String) -> Dictionary:
+	var slug: String = get_game_slug(game_name)
+	var game_dir: String = USER_GAMES_DIR.path_join(slug)
+	clear_file_hash_cache(game_dir)
+	if DirAccess.dir_exists_absolute(game_dir):
+		ToolManager.remove_dir_recursive(game_dir)
+
+	if paths_config.has(game_name):
+		var configured_path: String = str(paths_config[game_name])
+		clear_file_hash_cache(configured_path)
+		var norm_c := configured_path.replace("\\", "/").to_lower()
+		var norm_g := game_dir.replace("\\", "/").to_lower()
+		if norm_c.begins_with(norm_g) or norm_c.contains("/games/" + slug + "/"):
+			if FileAccess.file_exists(configured_path):
+				DirAccess.remove_absolute(configured_path)
+		paths_config.erase(game_name)
+		save_paths_config()
+
+	return {"success": true, "error": ""}
+
+func download_game(node: Node, game_name: String, callback: Callable = Callable(), force_redownload: bool = false) -> Dictionary:
+	var preset: Dictionary = get_preset(game_name)
+	var req_rom: String = str(preset.get("required_rom", ""))
+	var client_exe: String = str(preset.get("client_executable", preset.get("executable_name", "")))
+
+	if req_rom != "":
+		return await ensure_rom_exists_or_download(node, req_rom, callback, force_redownload)
+	elif client_exe != "" or str(preset.get("launch_mode", "")) == "direct":
+		if force_redownload:
+			uninstall_game(game_name)
+		return await ensure_pc_game_installed(node, game_name, preset, callback)
+	else:
+		return await ensure_rom_exists_or_download(node, game_name, callback, force_redownload)
+
+func redownload_game(node: Node, game_name: String, callback: Callable = Callable()) -> Dictionary:
+	return await download_game(node, game_name, callback, true)
+
+func set_game_path(game_name: String, file_path: String) -> Dictionary:
+	var trimmed: String = file_path.strip_edges()
+	if trimmed == "" or not FileAccess.file_exists(trimmed):
+		return {"success": false, "error": "Selected file does not exist: " + file_path}
+
+	clear_file_hash_cache(trimmed)
+	paths_config[game_name] = trimmed
+	save_paths_config()
+	return {"success": true, "path": trimmed, "error": ""}
+
+func unlink_game_path(game_name: String) -> Dictionary:
+	if paths_config.has(game_name):
+		clear_file_hash_cache(str(paths_config[game_name]))
+		paths_config.erase(game_name)
+		save_paths_config()
+	return {"success": true, "error": ""}
+
+func open_games_folder() -> void:
+	DirAccess.make_dir_recursive_absolute(USER_GAMES_DIR)
+	OS.shell_open(ProjectSettings.globalize_path(USER_GAMES_DIR))
+
+func open_game_folder(game_name: String) -> void:
+	var dir: String = get_game_dir(game_name)
+	OS.shell_open(ProjectSettings.globalize_path(dir))
+
+func set_rom_download_url(identifier: String, url: String, key: String = "") -> bool:
+	var success: bool = _rom_catalog_service.set_download_url(identifier, url, key)
+	if success:
+		roms_catalog = _rom_catalog_service.catalog
+	return success
+
 func download_and_extract_zip_to_dir(node: Node, download_url: String, target_dir: String, display_name: String, callback: Callable = Callable(), backup_files: Array = []) -> Dictionary:
 	var comp = AsyncCompletion.new()
 	var internal_cb = func(ok: bool, err: String):
@@ -637,27 +971,10 @@ func build_launch_context(game_path: String, patch_path: String = "", rom_path: 
 		player_name = NetworkManager.player_name
 
 	var server_url: String = NetworkManager.get_ap_server_url()
-	var server_clean_url: String = server_url.replace("ws://", "").replace("wss://", "").trim_suffix("/")
-	var server_host: String = "localhost"
-	var server_port: String = "38000"
-	if server_url.begins_with("wss://") or server_url.begins_with("ws://") or "/ap/" in server_url:
-		server_clean_url = server_url
-		var clean_host_part: String = server_url.replace("wss://", "").replace("ws://", "").split("/")[0]
-		if clean_host_part.contains(":"):
-			var host_parts: PackedStringArray = clean_host_part.split(":")
-			server_host = host_parts[0]
-			server_port = host_parts[1]
-		else:
-			server_host = clean_host_part if clean_host_part != "" else "lodestone.disaac1.com"
-			server_port = "443" if server_url.begins_with("wss://") else "80"
-	elif server_clean_url.contains(":"):
-		var parts: PackedStringArray = server_clean_url.split(":")
-		server_host = parts[0]
-		server_port = parts[1]
-	elif server_clean_url != "":
-		server_host = server_clean_url
-	else:
-		server_clean_url = "localhost:38000"
+	var server_clean_url: String = ServerUrlHelper.format_ap_address(server_url, "localhost:38000")
+	var hp: Dictionary = ServerUrlHelper.extract_host_port(server_url)
+	var server_host: String = hp.host
+	var server_port: String = hp.port
 
 	var slot_name: String = player_name
 	if game_name != "":
@@ -1050,11 +1367,7 @@ func _pipeline_prepare_session_payload(ctx: LaunchContext) -> bool:
 		
 		# Server connection URL
 		var ap_url: String = NetworkManager.get_ap_server_url()
-		var clean_url: String = ap_url.replace("ws://", "").replace("wss://", "").trim_suffix("/")
-		if clean_url == "":
-			clean_url = "localhost:38000"
-		if ap_url.begins_with("wss://") or "/ap/" in ap_url:
-			clean_url = ap_url
+		var clean_url: String = ServerUrlHelper.format_ap_address(ap_url, "localhost:38000")
 		ctx.server_url = clean_url
 		DisplayServer.clipboard_set(clean_url)
 		
@@ -1119,6 +1432,8 @@ func _pipeline_spawn_process(ctx: LaunchContext) -> bool:
 			emit_signal("launch_failed", ctx.game_name, "Failed to spawn Archipelago process: " + target_client)
 			return false
 		print("[Launcher] Archipelago Client spawned successfully (PID: ", ctx.process_id, ")")
+		if ctx.preset.get("auto_launch_emulator", false) or ctx.preset.get("client_component", "") == "SNI Client":
+			_spawn_sni_emulator_companion(ctx)
 		return true
 
 	elif ctx.launch_mode in ["direct", "steam", "mod_injector"]:
@@ -1215,8 +1530,8 @@ func _pipeline_monitor_post_launch(ctx: LaunchContext) -> void:
 			await ctx.node.get_tree().create_timer(0.8).timeout
 		_dismiss_modding_overlay(ctx.node)
 
-func _async_ensure_rom(node: Node, rom_name: String) -> Dictionary:
-	return await ensure_rom_exists_or_download(node, rom_name)
+func _async_ensure_rom(node: Node, rom_name: String, force_redownload: bool = false) -> Dictionary:
+	return await ensure_rom_exists_or_download(node, rom_name, Callable(), force_redownload)
 
 func _async_ensure_pc_game(node: Node, game_name: String, preset_config: Dictionary) -> Dictionary:
 	return await ensure_pc_game_installed(node, game_name, preset_config)
@@ -1492,3 +1807,53 @@ func _spawn_companion_client_tool_if_needed(ctx: LaunchContext) -> void:
 			client_args.append(ctx.server_url)
 		print("[Launcher] Spawning companion client tool: ", abs_client, " args: ", client_args)
 		OS.create_process(abs_client, client_args)
+
+func _spawn_sni_emulator_companion(ctx: LaunchContext) -> void:
+	if ctx.emulator_exe_path == "" or not FileAccess.file_exists(ctx.emulator_exe_path):
+		print("[Launcher] No emulator configured or found for companion launch.")
+		return
+
+	var base_patch: String = ctx.patch_path.get_basename()
+	var sfc_path: String = base_patch + ".sfc"
+	if not FileAccess.file_exists(sfc_path):
+		for attempt in range(12):
+			if is_instance_valid(ctx.node) and ctx.node.get_tree():
+				await ctx.node.get_tree().create_timer(0.5).timeout
+			if FileAccess.file_exists(sfc_path):
+				break
+
+	if not FileAccess.file_exists(sfc_path):
+		var patch_dir: String = ctx.patch_path.get_base_dir()
+		var da: DirAccess = DirAccess.open(patch_dir)
+		if da:
+			da.list_dir_begin()
+			var fn: String = da.get_next()
+			while fn != "":
+				if not da.current_is_dir() and (fn.ends_with(".sfc") or fn.ends_with(".smc")):
+					sfc_path = patch_dir.path_join(fn)
+					break
+				fn = da.get_next()
+
+	var emu_core: String = ctx.preset.get("emulator_core", "BSNESv115+")
+	if emu_core != "":
+		ArchipelagoConfig.configure_bizhawk_preferred_core(ctx.emulator_exe_path, "SNES", emu_core)
+
+	var lua_template: String = ctx.preset.get("emulator_lua", "")
+	var resolved_lua: String = ""
+	if lua_template != "":
+		resolved_lua = lua_template.replace("{tools_dir}", ProjectSettings.globalize_path(USER_TOOLS_DIR).replace("\\", "/"))
+	if resolved_lua == "" or not FileAccess.file_exists(resolved_lua):
+		var default_sni_lua: String = USER_TOOLS_DIR.path_join("Archipelago/SNI/lua/Connector.lua")
+		if FileAccess.file_exists(default_sni_lua):
+			resolved_lua = ProjectSettings.globalize_path(default_sni_lua)
+
+	var emu_args: Array = []
+	if resolved_lua != "" and FileAccess.file_exists(resolved_lua):
+		emu_args.append("--lua=" + ProjectSettings.globalize_path(resolved_lua))
+
+	if FileAccess.file_exists(sfc_path):
+		emu_args.append(ProjectSettings.globalize_path(sfc_path))
+
+	var abs_emu: String = ProjectSettings.globalize_path(ctx.emulator_exe_path)
+	print("[Launcher] Auto-launching companion emulator (BizHawk) for SNI: ", abs_emu, " args: ", emu_args)
+	OS.create_process(abs_emu, emu_args)

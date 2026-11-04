@@ -8,7 +8,31 @@ const FALLBACK_CATALOG_PATH: String = "user://roms.json"
 
 var presets: Dictionary
 var resolver
-var catalog: Dictionary = {}
+var catalog: Dictionary = {}:
+	set(val):
+		if catalog != val:
+			catalog = val
+			_download_entry_cache.clear()
+			_rebuild_catalog_index()
+
+var _download_entry_cache: Dictionary = {}
+var _catalog_index: Dictionary = {}
+
+func clear_cache() -> void:
+	_download_entry_cache.clear()
+	_rebuild_catalog_index()
+
+func _rebuild_catalog_index() -> void:
+	_catalog_index.clear()
+	for key in catalog.keys():
+		var val = catalog[key]
+		var s_key := str(key)
+		_catalog_index[s_key] = val
+		_catalog_index[s_key.to_lower()] = val
+		var norm: String = str(resolver.normalize(s_key)) if resolver else s_key.to_lower()
+		_catalog_index[norm] = val
+		var slg: String = str(resolver.get_slug(s_key)) if resolver else s_key.to_lower()
+		_catalog_index[slg] = val
 
 func _init(p_presets: Dictionary, p_resolver) -> void:
 	presets = p_presets
@@ -31,6 +55,16 @@ func _ensure_catalog_file() -> void:
 	RomCatalogManager.save_catalog(default_catalog)
 
 func get_download_entry(identifier: String) -> Dictionary:
+	var trimmed := identifier.strip_edges()
+	if trimmed.is_empty():
+		return {}
+	if _download_entry_cache.has(trimmed):
+		return _download_entry_cache[trimmed]
+	var res := _compute_download_entry(trimmed)
+	_download_entry_cache[trimmed] = res
+	return res
+
+func _compute_download_entry(identifier: String) -> Dictionary:
 	var raw_value: Variant = _find_raw_value(identifier)
 	var default_key: String = str(catalog.get("default_key", catalog.get("key", ""))).strip_edges()
 
@@ -52,49 +86,45 @@ func get_download_entry(identifier: String) -> Dictionary:
 		}
 	return {}
 
+func set_download_url(identifier: String, url: String, key: String = "") -> bool:
+	_download_entry_cache.clear()
+	if key != "":
+		catalog[identifier] = {"url": url, "key": key, "encrypted": true}
+	else:
+		catalog[identifier] = url
+	_rebuild_catalog_index()
+	return RomCatalogManager.save_catalog(catalog)
+
 func _find_raw_value(identifier: String) -> Variant:
-	if catalog.has(identifier):
-		return catalog[identifier]
-	for key in catalog.keys():
-		if str(key).nocasecmp_to(identifier) == 0:
-			return catalog[key]
+	if _catalog_index.has(identifier):
+		return _catalog_index[identifier]
+	var l_id := identifier.to_lower()
+	if _catalog_index.has(l_id):
+		return _catalog_index[l_id]
+	if resolver:
+		var norm_id: String = str(resolver.normalize(identifier))
+		if _catalog_index.has(norm_id):
+			return _catalog_index[norm_id]
+		var slug_id: String = str(resolver.get_slug(identifier))
+		if _catalog_index.has(slug_id):
+			return _catalog_index[slug_id]
+		var rom_slug: String = str(resolver.game_slug_for_rom(identifier))
+		if rom_slug != "" and _catalog_index.has(rom_slug):
+			return _catalog_index[rom_slug]
 
-	var candidate_keys: Array[String] = [resolver.get_slug(identifier)]
-	var target_norm: String = resolver.normalize(identifier)
-	for game_key in presets.keys():
-		var preset: Dictionary = presets[game_key]
-		var game_name: String = str(preset.get("game_name", game_key))
-		var required_rom: String = str(preset.get("required_rom", ""))
-		var executable: String = str(preset.get("client_executable", preset.get("executable_name", "")))
-		var game_slug: String = resolver.get_slug(game_name)
-		var aliases: Array[String] = _combined_aliases(preset)
-		var matched := identifier == required_rom or identifier == game_name or identifier == str(game_key) or identifier == executable
-		matched = matched or resolver.normalize(game_name) == target_norm or game_slug == resolver.get_slug(identifier)
-		if not matched:
-			for alias in aliases:
-				if identifier == alias or resolver.normalize(alias) == target_norm:
-					matched = true
-					break
-		if not matched:
-			continue
+	# Fast direct check: If identifier corresponds to a preset game, check its ROM & aliases
+	var p: Dictionary = resolver.get_preset(identifier) if resolver else presets.get(identifier, {})
+	if not p.is_empty():
+		var req := str(p.get("required_rom", ""))
+		if req != "" and _catalog_index.has(req):
+			return _catalog_index[req]
+		var exe := str(p.get("client_executable", p.get("executable_name", "")))
+		if exe != "" and _catalog_index.has(exe):
+			return _catalog_index[exe]
+		for a in _combined_aliases(p):
+			if _catalog_index.has(a):
+				return _catalog_index[a]
 
-		candidate_keys.append(game_name)
-		candidate_keys.append(str(game_key))
-		candidate_keys.append(game_slug)
-		if required_rom != "":
-			candidate_keys.append(required_rom)
-		if executable != "":
-			candidate_keys.append(executable)
-		candidate_keys.append_array(aliases)
-		break
-
-	for candidate in candidate_keys:
-		if catalog.has(candidate):
-			return catalog[candidate]
-		var normalized_candidate: String = resolver.normalize(candidate)
-		for key in catalog.keys():
-			if str(key).nocasecmp_to(candidate) == 0 or resolver.normalize(str(key)) == normalized_candidate:
-				return catalog[key]
 	return null
 
 func _combined_aliases(preset: Dictionary) -> Array[String]:
@@ -153,24 +183,9 @@ func find_existing_base_rom(rom_name: String) -> String:
 		USER_BASE_ROMS_DIR,
 		"user://base_rom",
 		"user://roms",
-		"user://",
-		"res://base_roms",
-		"res://base_rom",
-		"res://",
 		ProjectSettings.globalize_path(USER_BASE_ROMS_DIR),
 		ProjectSettings.globalize_path("user://base_rom")
 	]
-	
-	var games_da: DirAccess = DirAccess.open(USER_GAMES_DIR)
-	if games_da:
-		games_da.list_dir_begin()
-		var g_sub: String = games_da.get_next()
-		while g_sub != "":
-			if games_da.current_is_dir() and not g_sub.begins_with("."):
-				var sub_dir: String = USER_GAMES_DIR.path_join(g_sub)
-				if not candidate_directories.has(sub_dir):
-					candidate_directories.append(sub_dir)
-			g_sub = games_da.get_next()
 	
 	var target_extension: String = rom_name.get_extension().to_lower()
 	if target_extension == "":
@@ -314,10 +329,19 @@ func _fuzzy_search_matching_rom(candidate_directories: Array[String], rom_name: 
 			while file_item != "":
 				if not dir_access.current_is_dir():
 					var item_ext: String = file_item.get_extension().to_lower()
-					if supported_extensions.has(item_ext):
+					var ext_valid: bool = false
+					if target_extension != "":
+						ext_valid = (item_ext == target_extension or item_ext == "zip")
+					else:
+						ext_valid = supported_extensions.has(item_ext)
+					if ext_valid:
 						var item_lower: String = file_item.to_lower()
+						var all_matched: bool = true
 						for keyword in search_keywords:
-							if item_lower.contains(keyword):
+							if not item_lower.contains(keyword):
+								all_matched = false
+								break
+						if all_matched:
 								var found_path: String = dir_path.path_join(file_item)
 								print("[RomCatalogService] Discovered matching ROM file (", file_item, ") at: ", found_path)
 								if (found_path.contains("base_roms") or found_path.contains("base_rom")):

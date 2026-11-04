@@ -101,10 +101,20 @@ static func get_game_slug(game_name: String) -> String:
 static func _get_declarative_json_path(game_name: String) -> String:
 	var slug = get_game_slug(game_name)
 	var cache_path = "user://cache/games/" + slug + "/guided_setup.json"
-	if FileAccess.file_exists(cache_path):
-		return cache_path
 	var bundled_path = "res://../backend/data/games/" + slug + "/guided_setup.json"
-	if FileAccess.file_exists(bundled_path):
+	
+	var has_bundled = FileAccess.file_exists(bundled_path)
+	var has_cache = FileAccess.file_exists(cache_path)
+	
+	if has_bundled and has_cache:
+		var bundled_time = FileAccess.get_modified_time(bundled_path)
+		var cache_time = FileAccess.get_modified_time(cache_path)
+		if bundled_time >= cache_time:
+			return bundled_path
+		return cache_path
+	elif has_cache:
+		return cache_path
+	elif has_bundled:
 		return bundled_path
 	return ""
 
@@ -130,6 +140,39 @@ static func get_default_config(game_name: String) -> Dictionary:
 	if parsed is Dictionary and parsed.get("default_config", {}) is Dictionary:
 		return parsed["default_config"].duplicate(true)
 	return {}
+
+# Computes estimated checks for a game using its check_calculator
+static func get_estimated_checks(game_name: String, config: Dictionary = {}) -> int:
+	var json_path = _get_declarative_json_path(game_name)
+	if json_path == "":
+		return 50
+	var fa = FileAccess.open(json_path, FileAccess.READ)
+	if not fa:
+		return 50
+	var parsed = JSON.parse_string(fa.get_as_text())
+	fa.close()
+	if not (parsed is Dictionary) or not parsed.has("check_calculator"):
+		return 50
+	var calc: Dictionary = parsed["check_calculator"]
+	var total: int = int(calc.get("base_count", 0))
+	var active_cfg = parsed.get("default_config", {}).duplicate()
+	for k in config.keys():
+		active_cfg[k] = config[k]
+	for mod in calc.get("modifiers", []):
+		var k = str(mod.get("key", ""))
+		var val = active_cfg.get(k)
+		var delta: int = 0
+		if mod.has("multiplier"):
+			delta = int(val) * int(mod["multiplier"])
+		elif mod.has("values") and mod["values"] is Dictionary:
+			var val_dict: Dictionary = mod["values"]
+			var v_str = str(val).to_lower()
+			if val_dict.has(v_str):
+				delta = int(val_dict[v_str])
+			elif val_dict.has(str(val)):
+				delta = int(val_dict[str(val)])
+		total += delta
+	return total
 
 # Validates backend schema and instantiates the wizard if valid
 static func validate_and_create(game_name: String, schema: Dictionary) -> Dictionary:

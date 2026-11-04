@@ -19,7 +19,10 @@ const elements = {
   selectPollingRate: document.getElementById('select-polling-rate'),
   btnRefresh: document.getElementById('btn-refresh'),
   btnClearCache: document.getElementById('btn-clear-cache'),
+  btnDownloadTemplates: document.getElementById('btn-download-templates'),
   qbtnClearCache: document.getElementById('qbtn-clear-cache'),
+  qbtnDownloadTemplates: document.getElementById('qbtn-download-templates'),
+  btnDownloadTemplatesApworlds: document.getElementById('btn-download-templates-apworlds'),
   qbtnRefreshAll: document.getElementById('qbtn-refresh-all'),
   searchRooms: document.getElementById('search-rooms'),
   
@@ -226,6 +229,13 @@ function setupEventListeners() {
 
   elements.btnClearCache.addEventListener('click', clearCache);
   if (elements.qbtnClearCache) elements.qbtnClearCache.addEventListener('click', clearCache);
+
+  const handleDownloadTemplates = (e) => {
+    downloadYamlTemplates(e.currentTarget);
+  };
+  if (elements.btnDownloadTemplates) elements.btnDownloadTemplates.addEventListener('click', handleDownloadTemplates);
+  if (elements.qbtnDownloadTemplates) elements.qbtnDownloadTemplates.addEventListener('click', handleDownloadTemplates);
+  if (elements.btnDownloadTemplatesApworlds) elements.btnDownloadTemplatesApworlds.addEventListener('click', handleDownloadTemplates);
   if (elements.qbtnRefreshAll) elements.qbtnRefreshAll.addEventListener('click', () => {
     refreshAllData();
     showToast('Vitals refreshed', 'info');
@@ -1002,6 +1012,39 @@ async function clearCache() {
     }
   } catch (err) {
     showToast(`Error: ${err.message}`, 'error');
+  }
+}
+
+async function downloadYamlTemplates(btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+  }
+  showToast('Preparing YAML templates archive (standard + custom)...', 'info');
+
+  try {
+    const res = await fetch('/api/admin/yaml-templates/download');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Download failed' }));
+      throw new Error(err.error || 'Failed to download templates');
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'yaml_templates.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    showToast('YAML templates package downloaded!', 'success');
+  } catch (err) {
+    showToast(`Error downloading templates: ${err.message}`, 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
   }
 }
 

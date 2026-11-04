@@ -5,6 +5,7 @@ signal removed(game_name: String)
 signal closed()
 signal browse_items_requested(title: String, target_text_edit: TextEdit, is_location: bool, available_pool: Array)
 
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
 const GuidedSetupRegistry = preload("res://scripts/guided_setup/guided_setup_registry.gd")
 
 @onready var config_title: Label = %ConfigTitle
@@ -13,6 +14,8 @@ const GuidedSetupRegistry = preload("res://scripts/guided_setup/guided_setup_reg
 @onready var options_container: VBoxContainer = %ConfigPopupOptionsContainer
 @onready var remove_btn: Button = %ConfigRemoveBtn
 @onready var save_btn: Button = %ConfigSaveBtn
+@onready var popup_panel: PanelContainer = $Center/PopupPanel
+@onready var scroll: ScrollContainer = $Center/PopupPanel/Margin/VBox/Scroll
 
 const COLOR_HOST_PURPLE: Color = UITheme.COLOR_HOST_PURPLE
 const COLOR_ERROR_RED: Color = UITheme.COLOR_ERROR_RED
@@ -28,8 +31,26 @@ func _ready() -> void:
 	close_btn.pressed.connect(close)
 	save_btn.pressed.connect(_on_save_pressed)
 	remove_btn.pressed.connect(_on_remove_pressed)
+	if is_instance_valid(scroll):
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_update_modal_bounds()
+	if get_viewport():
+		get_viewport().size_changed.connect(_update_modal_bounds)
+
+func _update_modal_bounds() -> void:
+	if not is_instance_valid(popup_panel):
+		return
+	var vp = get_viewport_rect().size
+	if vp.x <= 0 or vp.y <= 0:
+		return
+	var target_w = clampf(vp.x - 48.0, 480.0, 960.0)
+	var target_h = clampf(vp.y - 36.0, 360.0, 680.0)
+	popup_panel.custom_minimum_size = Vector2(target_w, target_h)
+	if is_instance_valid(scroll):
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 
 func open(game_name: String, schema_dict: Dictionary, config_data: Dictionary, guided_setup_enabled: bool = true) -> void:
+	_update_modal_bounds()
 	active_game_name = game_name
 	active_schema = schema_dict
 	current_config = config_data.duplicate(true)
@@ -208,6 +229,10 @@ func _create_range_ctrl(opt_name: String, current_val: Variant, opt_def: Diction
 func _create_choice_ctrl(opt_name: String, current_val: Variant, opt_def: Dictionary) -> OptionButton:
 	var dropdown = OptionButton.new()
 	dropdown.size_flags_horizontal = SIZE_EXPAND_FILL
+	dropdown.fit_to_longest_item = false
+	dropdown.clip_text = true
+	dropdown.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	dropdown.custom_minimum_size = Vector2(0, 36)
 	var choices: Array = opt_def.get("choices", [])
 	var sel_idx: int = -1
 

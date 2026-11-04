@@ -88,6 +88,7 @@ clear_button_enabled = true
 [node name="Scroll" type="ScrollContainer" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="ItemBrowserList" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/Scroll"]
 unique_name_in_owner = true

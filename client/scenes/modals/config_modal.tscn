@@ -88,8 +88,15 @@ script = ExtResource("3_spinner")
 [node name="Scroll" type="ScrollContainer" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="ConfigPopupOptionsContainer" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/Scroll"]
+[node name="ScrollMargin" type="MarginContainer" parent="Center/PopupPanel/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 14
+
+[node name="ConfigPopupOptionsContainer" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/Scroll/ScrollMargin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

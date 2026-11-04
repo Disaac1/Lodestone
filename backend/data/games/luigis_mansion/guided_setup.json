@@ -29,6 +29,47 @@
     "trap_link": 0,
     "energy_link": false
   },
+  "check_calculator": {
+    "base_count": 54,
+    "base_label": "Mansion Story Chests & Clears",
+    "modifiers": [
+      {
+        "key": "boosanity",
+        "label": "Boosanity (Boos in Pool)",
+        "values": { "true": 50 }
+      },
+      {
+        "key": "furnisanity",
+        "label": "Furnisanity (Furniture Checks)",
+        "values": { "true": 113 }
+      },
+      {
+        "key": "speedy_spirits",
+        "label": "Speedy Spirits",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "gold_mice",
+        "label": "Gold Mice",
+        "values": { "true": 10 }
+      },
+      {
+        "key": "toadsanity",
+        "label": "Toadsanity",
+        "values": { "true": 5 }
+      },
+      {
+        "key": "lightsanity",
+        "label": "Lightsanity",
+        "values": { "true": 35 }
+      },
+      {
+        "key": "walksanity",
+        "label": "Walksanity",
+        "values": { "true": 40 }
+      }
+    ]
+  },
   "required_schema_keys": [
     "game_mode",
     "rank_requirement",
@@ -96,8 +137,76 @@
     },
     {
       "num": 2,
-      "title": "2. Sanity Checks & Pool",
-      "description": "Step 2: Choose which mansion entities & events are randomized locations",
+      "title": "2. World & Doors",
+      "description": "Step 2: Door Randomization, Boo Gates & Upgrades",
+      "controls": [
+        {
+          "type": "choice",
+          "option_key": "vacuum_start",
+          "label": "Starting Poltergust 3000:",
+          "options": [
+            { "id": 0, "title": "Start Without Vacuum (Shuffled in Pool)", "name": "Start Without Vacuum (Shuffled in Pool)" },
+            { "id": 1, "title": "Start with Poltergust 3000", "name": "Start with Poltergust 3000" }
+          ]
+        },
+        {
+          "type": "choice",
+          "option_key": "door_rando",
+          "label": "Door Randomization:",
+          "options": [
+            { "id": 0, "title": "Vanilla Doors", "name": "Vanilla Doors" },
+            { "id": 1, "title": "Basic Door Randomizer", "name": "Basic Door Randomizer" },
+            { "id": 2, "title": "Chaos Door Randomizer", "name": "Chaos Door Randomizer" }
+          ]
+        },
+        {
+          "type": "choice",
+          "option_key": "boo_radar",
+          "label": "Boo Radar Starting State:",
+          "options": [
+            { "id": 0, "title": "Start with Boo Radar", "name": "Start with Boo Radar" },
+            { "id": 1, "title": "Shuffle Boo Radar into Pool", "name": "Shuffle Boo Radar into Pool" },
+            { "id": 2, "title": "Exclude Boo Radar (No radar in game)", "name": "Exclude Boo Radar (No radar in game)" }
+          ]
+        },
+        {
+          "type": "slider",
+          "option_key": "vacuum_upgrades",
+          "label": "Poltergust Vacuum Upgrades in Pool:",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "suffix": " Upgrades"
+        },
+        {
+          "type": "checkbox",
+          "option_key": "boo_gates",
+          "label": "Boo Gates: Gates require specific Boo counts to pass"
+        },
+        {
+          "type": "slider",
+          "option_key": "balcony_boo_count",
+          "label": "Boos Required for Balcony Gate:",
+          "min": 5,
+          "max": 35,
+          "step": 1,
+          "suffix": " Boos"
+        },
+        {
+          "type": "slider",
+          "option_key": "final_boo_count",
+          "label": "Boos Required for King Boo Gate:",
+          "min": 10,
+          "max": 50,
+          "step": 1,
+          "suffix": " Boos"
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Check Pools & Sanity",
+      "description": "Step 3: Choose which mansion entities & events are randomized locations",
       "controls": [
         {
           "type": "checkbox",
@@ -152,75 +261,16 @@
       ]
     },
     {
-      "num": 3,
-      "title": "3. Logic & Equipment",
-      "description": "Step 3: Door Randomization, Boo Gates & Upgrades",
-      "controls": [
-        {
-          "type": "choice",
-          "option_key": "door_rando",
-          "label": "Door Randomization:",
-          "options": [
-            { "id": 0, "name": "Vanilla Doors" },
-            { "id": 1, "name": "Basic Door Randomizer" },
-            { "id": 2, "name": "Chaos Door Randomizer" }
-          ]
-        },
-        {
-          "type": "choice",
-          "option_key": "boo_radar",
-          "label": "Boo Radar Starting State:",
-          "options": [
-            { "id": 0, "name": "Start with Boo Radar" },
-            { "id": 1, "name": "Shuffle Boo Radar into Pool" },
-            { "id": 2, "name": "Exclude Boo Radar (No radar in game)" }
-          ]
-        },
-        {
-          "type": "slider",
-          "option_key": "vacuum_upgrades",
-          "label": "Poltergust Vacuum Upgrades in Pool:",
-          "min": 0,
-          "max": 5,
-          "step": 1,
-          "suffix": " Upgrades"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "boo_gates",
-          "label": "Boo Gates: Gates require specific Boo counts to pass"
-        },
-        {
-          "type": "slider",
-          "option_key": "balcony_boo_count",
-          "label": "Balcony Boo Requirement:",
-          "min": 0,
-          "max": 50,
-          "step": 1,
-          "suffix": " Boos"
-        },
-        {
-          "type": "slider",
-          "option_key": "final_boo_count",
-          "label": "Secret Altar (Final Boss) Boo Requirement:",
-          "min": 0,
-          "max": 50,
-          "step": 1,
-          "suffix": " Boos"
-        }
-      ]
-    },
-    {
       "num": 4,
-      "title": "4. Health, Multiworld & Links",
-      "description": "Step 4: Multiworld interactivity, traps, and death link",
+      "title": "4. Health & Difficulty",
+      "description": "Step 4: Luigi Max Health, Boss Health & Trap Weights",
       "controls": [
         {
           "type": "slider",
           "option_key": "luigi_max_health",
           "label": "Luigi Max Health:",
-          "min": 10,
-          "max": 300,
+          "min": 50,
+          "max": 200,
           "step": 10,
           "suffix": " HP"
         },
@@ -228,7 +278,7 @@
           "type": "slider",
           "option_key": "king_boo_health",
           "label": "King Boo Health:",
-          "min": 50,
+          "min": 100,
           "max": 1000,
           "step": 50,
           "suffix": " HP"
@@ -236,32 +286,39 @@
         {
           "type": "slider",
           "option_key": "trap_percentage",
-          "label": "Filler Trap Percentage:",
+          "label": "Trap Item Percentage:",
           "min": 0,
-          "max": 100,
+          "max": 40,
           "step": 5,
           "suffix": "%"
-        },
+        }
+      ]
+    },
+    {
+      "num": 5,
+      "title": "5. Multiworld & Links",
+      "description": "Step 5: DeathLink, TrapLink & EnergyLink",
+      "controls": [
         {
           "type": "checkbox",
           "option_key": "death_link",
-          "label": "Death Link: When Luigi faints, all players faint"
+          "label": "DeathLink: Share deaths with other players in the multiworld"
         },
         {
           "type": "choice",
           "option_key": "trap_link",
-          "label": "Trap Link:",
+          "label": "TrapLink Mode:",
           "options": [
-            { "id": 0, "name": "Disabled" },
+            { "id": 0, "name": "Off" },
             { "id": 1, "name": "Send Only" },
             { "id": 2, "name": "Receive Only" },
-            { "id": 3, "name": "Send & Receive Traps" }
+            { "id": 3, "name": "Full Bidirectional" }
           ]
         },
         {
           "type": "checkbox",
           "option_key": "energy_link",
-          "label": "Energy Link: Send and receive mansion currency as shared team energy"
+          "label": "EnergyLink: Share electrical battery energy across the multiworld"
         }
       ]
     }

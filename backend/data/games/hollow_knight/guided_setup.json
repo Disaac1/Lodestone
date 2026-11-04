@@ -49,6 +49,92 @@
     "DeathLinkShade": "shade",
     "DeathLinkBreaksFragileCharms": false
   },
+  "check_calculator": {
+    "base_count": 54,
+    "base_label": "Boss Defeats & Core Checks",
+    "modifiers": [
+      {
+        "key": "RandomizeSkills",
+        "label": "Skills & Spells",
+        "values": { "true": 14 }
+      },
+      {
+        "key": "RandomizeDreamers",
+        "label": "Dreamers",
+        "values": { "true": 3 }
+      },
+      {
+        "key": "RandomizeCharms",
+        "label": "Charms",
+        "values": { "true": 40 }
+      },
+      {
+        "key": "RandomizeCharmNotches",
+        "label": "Charm Notches",
+        "values": { "true": 8 }
+      },
+      {
+        "key": "RandomizeKeys",
+        "label": "Keys & Passes",
+        "values": { "true": 8 }
+      },
+      {
+        "key": "RandomizeStags",
+        "label": "Stag Stations",
+        "values": { "true": 11 }
+      },
+      {
+        "key": "RandomizeMaskShards",
+        "label": "Mask Shards",
+        "values": { "true": 16 }
+      },
+      {
+        "key": "RandomizeVesselFragments",
+        "label": "Vessel Fragments",
+        "values": { "true": 9 }
+      },
+      {
+        "key": "RandomizePaleOre",
+        "label": "Pale Ore",
+        "values": { "true": 6 }
+      },
+      {
+        "key": "RandomizeGrubs",
+        "label": "Grubs",
+        "values": { "true": 46 }
+      },
+      {
+        "key": "RandomizeWhisperingRoots",
+        "label": "Whispering Roots",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "RandomizeBossEssence",
+        "label": "Boss Essence",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "RandomizeGeoChests",
+        "label": "Geo Chests",
+        "values": { "true": 35 }
+      },
+      {
+        "key": "RandomizeSoulTotems",
+        "label": "Soul Totems",
+        "values": { "true": 20 }
+      },
+      {
+        "key": "RandomizeLoreTablets",
+        "label": "Lore Tablets",
+        "values": { "true": 12 }
+      },
+      {
+        "key": "WhitePalace",
+        "label": "White Palace",
+        "values": { "kingfragment": 1, "nopathofpain": 14, "include": 17 }
+      }
+    ]
+  },
   "required_schema_keys": [
     "Goal",
     "WhitePalace",
@@ -513,9 +599,61 @@
     },
     {
       "num": 4,
-      "title": "4. Logic & Skips",
-      "description": "Step 4: Configure advanced trick skips and movement techniques expected by the logic",
+      "title": "4. Logic & Tricks",
+      "description": "Step 4: Configure trick skips and platforming techniques expected by the logic",
       "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "trick_logic_preset",
+          "label": "Grouped Trick Skips Preset:",
+          "choices": [
+            {
+              "id": "no_skips",
+              "title": "🚶 No Skips / Casual (Vanilla intended movement only)",
+              "values": {
+                "BackgroundObjectPogos": false,
+                "EnemyPogos": false,
+                "AcidSkips": false,
+                "ShadeSkips": false,
+                "SpikeTunnels": false,
+                "DarkRooms": false,
+                "DamageBoosts": false,
+                "FireballSkips": false
+              }
+            },
+            {
+              "id": "basic_skips",
+              "title": "🦘 Basic Skips (Enemy & Scenery Pogos, Shade Skips)",
+              "values": {
+                "BackgroundObjectPogos": true,
+                "EnemyPogos": true,
+                "ShadeSkips": true,
+                "AcidSkips": false,
+                "SpikeTunnels": false,
+                "DarkRooms": false,
+                "DamageBoosts": false,
+                "FireballSkips": false
+              }
+            },
+            {
+              "id": "advanced_skips",
+              "title": "⚡ Advanced Speedrun Skips (Fireball Recoil, Acid Skips, Spike Tunnels)",
+              "values": {
+                "BackgroundObjectPogos": true,
+                "EnemyPogos": true,
+                "ShadeSkips": true,
+                "AcidSkips": true,
+                "FireballSkips": true,
+                "SpikeTunnels": true,
+                "DarkRooms": true,
+                "DamageBoosts": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
         {
           "type": "toggle",
           "option_key": "PreciseMovement",
@@ -538,9 +676,6 @@
           "type": "toggle",
           "option_key": "BackgroundObjectPogos",
           "label": "Background Pogos (Expects bouncing on scenery, spikes, and objects)"
-        },
-        {
-          "type": "separator"
         },
         {
           "type": "toggle",

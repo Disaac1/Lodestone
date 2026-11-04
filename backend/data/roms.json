@@ -12,24 +12,12 @@
     "encrypted": true
   },
   "Pokemon - Black Version (USA, Europe) (NDSi Enhanced).nds": "https://archive.org/download/pkmn_collection/pkmn%20collection/NDS/Pokemon%20-%20Black%20Version%20%28USA%2C%20Europe%29%20%28NDSi%20Enhanced%29.zip",
-  "Luigi's Mansion (USA).rvz": {
-    "url": "https://drive.google.com/file/d/1ikok8afGQWrTF1fgAoeUKUDrpFJqQZ51/view?usp=sharing",
-    "key": "wayfinder2026",
-    "encrypted": true
-  },
-  "Luigi's Mansion (USA).iso": {
-    "url": "https://drive.google.com/file/d/1ikok8afGQWrTF1fgAoeUKUDrpFJqQZ51/view?usp=sharing",
-    "key": "wayfinder2026",
-    "encrypted": true
-  },
-  "Luigi's Mansion": {
-    "url": "https://drive.google.com/file/d/1ikok8afGQWrTF1fgAoeUKUDrpFJqQZ51/view?usp=sharing",
-    "key": "wayfinder2026",
-    "encrypted": true
-  },
   "luigis_mansion": {
     "url": "https://drive.google.com/file/d/1ikok8afGQWrTF1fgAoeUKUDrpFJqQZ51/view?usp=sharing",
     "key": "wayfinder2026",
     "encrypted": true
-  }
+  },
+  "Zelda no Densetsu - Kamigami no Triforce (Japan).sfc": "https://archive.org/download/No-Intro_SNES_Collection/mnt/user/ROMS/Nintendo/SNES_2/SNES.zip/SNES%2FZelda%20no%20Densetsu%20-%20Kamigami%20no%20Triforce%20%28Japan%29.zip",
+  "a_link_to_the_past": "https://archive.org/download/No-Intro_SNES_Collection/mnt/user/ROMS/Nintendo/SNES_2/SNES.zip/SNES%2FZelda%20no%20Densetsu%20-%20Kamigami%20no%20Triforce%20%28Japan%29.zip",
+  "Zelda no Densetsu - Kamigami no Toraifoosu (Japan).sfc": "https://archive.org/download/No-Intro_SNES_Collection/mnt/user/ROMS/Nintendo/SNES_2/SNES.zip/SNES%2FZelda%20no%20Densetsu%20-%20Kamigami%20no%20Triforce%20%28Japan%29.zip"
 }

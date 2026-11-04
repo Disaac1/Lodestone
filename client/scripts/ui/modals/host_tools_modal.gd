@@ -2,6 +2,9 @@ extends Control
 
 signal closed()
 
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
+const ServerUrlHelper = preload("res://scripts/core/server_url_helper.gd")
+
 @onready var close_btn: Button = %CloseBtn
 @onready var room_pill_label: Label = %RoomPillLabel
 @onready var tab_container: TabContainer = %HostTabContainer
@@ -121,7 +124,7 @@ func _refresh_quick_actions() -> void:
 	var ap_url: String = NetworkManager.get_ap_server_url()
 	if ap_url != "":
 		conn_address_label.text = ap_url
-		if ap_url.begins_with("wss://") or "/ap/" in ap_url:
+		if ServerUrlHelper.is_cloud_relay(ap_url):
 			conn_mode_badge.text = "🔒 Cloud Relay (15s Heartbeat Active)"
 			conn_mode_badge.add_theme_color_override("font_color", UITheme.COLOR_GUIDED_GREEN)
 		else:

@@ -92,7 +92,6 @@ static func load_banner_by_slug(slug: String, context_node: Node = null, callbac
 
 	# 1. Check in-memory cache
 	if _memory_texture_cache.has(slug):
-		print("[BannerService] Using in-memory banner cache for: %s" % slug)
 		return _memory_texture_cache[slug]
 
 	# 2. Check local disk cache (previously downloaded from backend)
@@ -102,7 +101,6 @@ static func load_banner_by_slug(slug: String, context_node: Node = null, callbac
 		if img and not img.is_empty():
 			var tex: ImageTexture = ImageTexture.create_from_image(img)
 			_memory_texture_cache[slug] = tex
-			print("[BannerService] Loaded banner from local disk cache: %s" % cache_path)
 			return tex
 
 	# 3. Check user runtime drop-in directory
@@ -112,7 +110,6 @@ static func load_banner_by_slug(slug: String, context_node: Node = null, callbac
 		if img and not img.is_empty():
 			var tex: ImageTexture = ImageTexture.create_from_image(img)
 			_memory_texture_cache[slug] = tex
-			print("[BannerService] Loaded banner from user drop-in: %s" % user_path)
 			return tex
 
 	# 4. Initiate asynchronous backend fetch
@@ -123,7 +120,6 @@ static func load_banner_by_slug(slug: String, context_node: Node = null, callbac
 	if ResourceLoader.exists(res_path):
 		var bundled_tex = load(res_path) as Texture2D
 		if bundled_tex:
-			print("[BannerService] Using bundled banner resource as temporary view: %s" % res_path)
 			return bundled_tex
 
 	return null

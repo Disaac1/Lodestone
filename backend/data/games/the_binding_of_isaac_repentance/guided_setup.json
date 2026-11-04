@@ -9,13 +9,34 @@
     ],
     "goal_amount": 3,
     "item_location_percentage": 100,
+    "permanent_stat_upgrades": 3,
+    "isaac_progression_pack": "full",
     "progressive_mapping_upgrades": true,
     "progressive_inventory_upgrades": true,
-    "permanent_stat_upgrades": 3,
     "bad_rng_protection": true,
     "floor_variations": true,
     "death_link": false,
     "death_link_severity": "normal"
+  },
+  "check_calculator": {
+    "base_count": 40,
+    "base_label": "Base Boss & Completion Checks",
+    "modifiers": [
+      {
+        "key": "item_location_percentage",
+        "label": "Item Location Density",
+        "values": {
+          "30": 30,
+          "40": 40,
+          "50": 50,
+          "60": 60,
+          "70": 70,
+          "80": 80,
+          "90": 90,
+          "100": 100
+        }
+      }
+    ]
   },
   "required_schema_keys": [
     "goals",
@@ -26,29 +47,24 @@
   "steps": [
     {
       "num": 1,
-      "title": "1. Boss Goals & Win Condition",
-      "description": "Step 1: Choose which endgame bosses qualify as goals and how many are required to win",
+      "title": "1. Goals & Win Condition",
+      "description": "Step 1: Select Target Boss Goals and Required Clear Count",
       "controls": [
         {
-          "type": "card_grid",
-          "option_key": "goal_amount",
+          "type": "multi_select",
+          "option_key": "goals",
+          "label": "Target Boss Goals (Select bosses that count towards victory):",
           "columns": 3,
           "items": [
-            {
-              "id": 1,
-              "title": "⚡ Quick Run (1 Goal)",
-              "desc": "Shortest session. Defeat any 1 target boss to clear the seed."
-            },
-            {
-              "id": 3,
-              "title": "🎯 Standard Multiworld (3 Goals)",
-              "desc": "Balanced progression. Complete 3 boss goals across your runs."
-            },
-            {
-              "id": 5,
-              "title": "🏆 Long Campaign (5+ Goals)",
-              "desc": "Extended run covering paths to most major endgame encounters."
-            }
+            { "id": "Isaac", "title": "👼 Isaac" },
+            { "id": "Satan", "title": "😈 Satan" },
+            { "id": "Blue Baby", "title": "💀 Blue Baby (???)" },
+            { "id": "The Lamb", "title": "🐑 The Lamb" },
+            { "id": "Mega Satan", "title": "👿 Mega Satan" },
+            { "id": "The Beast", "title": "🌋 The Beast" },
+            { "id": "Mother", "title": "🧟 Mother" },
+            { "id": "Delirium", "title": "🌀 Delirium" },
+            { "id": "Ultra Greed", "title": "💰 Ultra Greed" }
           ]
         },
         {
@@ -57,74 +73,121 @@
         {
           "type": "slider",
           "option_key": "goal_amount",
-          "label": "Custom Required Goal Count (1 - 11):",
+          "label": "Required Completed Goals:",
           "min": 1,
           "max": 11,
-          "step": 1
+          "step": 1,
+          "suffix": " Goals"
         }
       ]
     },
     {
       "num": 2,
-      "title": "2. Item Pool & Progression",
-      "description": "Step 2: Customize check density, permanent stat increases, and persistent upgrades",
+      "title": "2. World & Progression",
+      "description": "Step 2: Floor Variations, Anti-RNG Protection & Progression Pack",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "isaac_progression_pack",
+          "label": "Isaac Progression Upgrades Pack:",
+          "choices": [
+            {
+              "id": "full",
+              "title": "📦 Full Progression Pack (Map + Pocket / Inventory Upgrades)",
+              "values": {
+                "progressive_mapping_upgrades": true,
+                "progressive_inventory_upgrades": true
+              }
+            },
+            {
+              "id": "mapping_only",
+              "title": "🗺️ Mapping Only (Map -> Compass -> Blue Map)",
+              "values": {
+                "progressive_mapping_upgrades": true,
+                "progressive_inventory_upgrades": false
+              }
+            },
+            {
+              "id": "pockets_only",
+              "title": "🎒 Pockets Only (Belly Button, Deep Pockets, Schoolbag)",
+              "values": {
+                "progressive_mapping_upgrades": false,
+                "progressive_inventory_upgrades": true
+              }
+            },
+            {
+              "id": "none",
+              "title": "❌ Vanilla / Disabled (No progressive map or pocket items)",
+              "values": {
+                "progressive_mapping_upgrades": false,
+                "progressive_inventory_upgrades": false
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "bad_rng_protection",
+          "label": "🛡️ Bad RNG Protection (Prevents critical progress from being locked behind room RNG)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "floor_variations",
+          "label": "🚪 Floor Variations (Cellar, Catacombs, Necropolis, Utero require unlocks)"
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Check Pools & Item Density",
+      "description": "Step 3: Check Density Percentage & Permanent Stat Upgrades",
       "controls": [
         {
           "type": "slider",
           "option_key": "item_location_percentage",
           "label": "Item Location Percentage (% of item checks randomized):",
-          "min": 10,
+          "min": 30,
           "max": 100,
-          "step": 5
+          "step": 5,
+          "suffix": "%"
         },
         {
           "type": "slider",
           "option_key": "permanent_stat_upgrades",
           "label": "Permanent Stat Upgrades in Pool (Retained across runs):",
           "min": 0,
-          "max": 5,
-          "step": 1
-        },
-        {
-          "type": "checkbox",
-          "option_key": "progressive_mapping_upgrades",
-          "label": "Progressive Map Upgrades (Map -> Compass -> Blue Map in pool)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "progressive_inventory_upgrades",
-          "label": "Progressive Pocket / Inventory Upgrades (Polydactyly -> Belly Button -> Deep Pockets -> Schoolbag)"
+          "max": 10,
+          "step": 1,
+          "suffix": " Upgrades"
         }
       ]
     },
     {
-      "num": 3,
-      "title": "3. Quality of Life & DeathLink",
-      "description": "Step 3: Configure RNG protections, alternate floor unlocks, and DeathLink severity",
+      "num": 4,
+      "title": "4. Multiworld & DeathLink",
+      "description": "Step 4: DeathLink Configuration & Severity",
       "controls": [
         {
-          "type": "checkbox",
-          "option_key": "bad_rng_protection",
-          "label": "Bad RNG Protection (Ensures critical progression isn't blocked by bad room RNG)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "floor_variations",
-          "label": "Alternate Floor Variations (Cellar, Catacombs, Necropolis, Utero, etc. require unlocks)"
-        },
-        {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "death_link",
-          "label": "Enable DeathLink (Share death events with other players in the multiworld)"
+          "label": "💀 DeathLink (Share deaths across multiworld players)"
         },
         {
-          "type": "choice",
+          "type": "dropdown",
           "option_key": "death_link_severity",
-          "label": "DeathLink Severity (When DeathLink triggers):",
-          "options": [
-            { "id": "mild", "name": "Mild (Receive 4 hits of damage; run continues if HP remains)" },
-            { "id": "normal", "name": "Normal (Fatal blow, but extra lives and revives trigger)" },
-            { "id": "severe", "name": "Severe (Immediate unavoidable death regardless of revives)" }
+          "label": "DeathLink Severity:",
+          "choices": [
+            {
+              "id": "mild",
+              "title": "🩹 Mild (Damage penalty on partner death)"
+            },
+            {
+              "id": "normal",
+              "title": "☠️ Normal (Instant death on partner death)"
+            }
           ]
         }
       ]

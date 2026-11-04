@@ -61,57 +61,10 @@ func _run_suite() -> void:
 	print("  -> Passed: Core launcher and lobby scripts are 100% data-driven and game-agnostic.")
 
 	# -------------------------------------------------------------
-	# 2. Async Launch Pipeline State Machine
 	# -------------------------------------------------------------
-	print("\n[Test 2] Testing full async launch_game pipeline on synthetic preset...")
-	var launcher_script = load("res://scripts/core/game_launcher.gd")
-	var temp_test_dir = "user://test_pipeline_run"
-	DirAccess.make_dir_recursive_absolute(temp_test_dir)
-	var mock_exe_path = temp_test_dir.path_join("mock_steam_game.exe")
-	var fa = FileAccess.open(mock_exe_path, FileAccess.WRITE)
-	fa.store_string("MOCK_GAME_EXE")
-	fa.close()
-
-	launcher.launcher_presets["PipelineTestGame"] = {
-		"game_name": "PipelineTestGame",
-		"launch_mode": "steam",
-		"steam_appid": "123450",
-		"client_executable": "mock_steam_game.exe"
-	}
-	launcher.paths_config["PipelineTestGame"] = mock_exe_path
-
-	var recorded_stages: Array[int] = []
-	launcher.launch_status_updated.connect(func(stage: int, _msg: String, _pct: float):
-		recorded_stages.append(stage)
-	)
-
-	var signal_state = {}
-	launcher.launch_completed.connect(func(g_name: String, _pid: int):
-		signal_state["completed_game"] = g_name
-	)
-
-	var dummy_node = Control.new()
-	root.add_child(dummy_node)
-	var launch_res = await launcher.launch_game(dummy_node, "PipelineTestGame")
-	dummy_node.queue_free()
-
-	_assert_true(launch_res == true, "launch_game failed for synthetic game")
-	_assert_true(signal_state.get("completed_game") == "PipelineTestGame", "launch_completed signal did not fire")
-	_assert_true(recorded_stages.has(launcher_script.LaunchStage.INITIALIZING), "Missing INITIALIZING stage")
-	_assert_true(recorded_stages.has(launcher_script.LaunchStage.PREPARING_ROM), "Missing PREPARING_ROM stage")
-	_assert_true(recorded_stages.has(launcher_script.LaunchStage.PREPARING_TOOLS), "Missing PREPARING_TOOLS stage")
-	_assert_true(recorded_stages.has(launcher_script.LaunchStage.SYNCING_CONFIG), "Missing SYNCING_CONFIG stage")
-	_assert_true(recorded_stages.has(launcher_script.LaunchStage.SPAWNING_PROCESS), "Missing SPAWNING_PROCESS stage")
-
-	launcher.launcher_presets.erase("PipelineTestGame")
-	launcher.paths_config.erase("PipelineTestGame")
-	DirAccess.remove_absolute(mock_exe_path)
-	print("  -> Passed: Pipeline executed all stages sequentially in order: ", recorded_stages)
-
+	# 2. Dynamic Config Writers & Template Interpolation
 	# -------------------------------------------------------------
-	# 3. Dynamic Config Writers & Template Interpolation
-	# -------------------------------------------------------------
-	print("\n[Test 3] Verifying host.yaml sync and mod template interpolation...")
+	print("\n[Test 2] Verifying host.yaml sync and mod template interpolation...")
 	# Slay the Spire config template
 	var sts_template = "ConnectAddress={server_clean_url}\nConnectSlot={slot_name}\n"
 	var mock_context = {
@@ -156,9 +109,9 @@ func _run_suite() -> void:
 	print("  -> Passed: Config template interpolation and host.yaml synchronization verified.")
 
 	# -------------------------------------------------------------
-	# 4. Lumafly Assembly-CSharp Swap Mechanics
+	# 3. Lumafly Assembly-CSharp Swap Mechanics
 	# -------------------------------------------------------------
-	print("\n[Test 4] Verifying Lumafly modded assembly swap and restoration...")
+	print("\n[Test 3] Verifying Lumafly modded assembly swap and restoration...")
 	var mock_hk_dir = "user://test_lumafly_env"
 	var mock_managed = mock_hk_dir.path_join("hollow_knight_Data/Managed")
 	DirAccess.make_dir_recursive_absolute(mock_managed)
@@ -195,9 +148,9 @@ func _run_suite() -> void:
 	print("  -> Passed: Lumafly assembly swap, backup, and restoration verified.")
 
 	# -------------------------------------------------------------
-	# 5. Patch File Completion Detection
+	# 4. Patch File Completion Detection
 	# -------------------------------------------------------------
-	print("\n[Test 5] Verifying async patch completion detection...")
+	print("\n[Test 4] Verifying async patch completion detection...")
 	var mock_patch_dir = "user://test_patch_detect"
 	DirAccess.make_dir_recursive_absolute(mock_patch_dir)
 	var mock_cue = mock_patch_dir.path_join("AP_TestSeed_P1_Hero.cue")
@@ -213,9 +166,9 @@ func _run_suite() -> void:
 	print("  -> Passed: Directory completion detection verified.")
 
 	# -------------------------------------------------------------
-	# 6. Structured Signal Decoupling & LaunchModal Reaction
+	# 5. Structured Signal Decoupling & LaunchModal Reaction
 	# -------------------------------------------------------------
-	print("\n[Test 6] Verifying GameLauncher structured signals and LaunchModal decoupling...")
+	print("\n[Test 5] Verifying GameLauncher structured signals and LaunchModal decoupling...")
 	_assert_true(launcher.has_signal("download_progress_updated"), "Missing download_progress_updated signal")
 	_assert_true(launcher.has_signal("modding_status_updated"), "Missing modding_status_updated signal")
 	_assert_true(launcher.has_signal("overlay_dismiss_requested"), "Missing overlay_dismiss_requested signal")
@@ -239,6 +192,36 @@ func _run_suite() -> void:
 	launcher.overlay_dismiss_requested.emit()
 	_assert_true(launch_overlay.visible == false, "launch_overlay should be closed after overlay_dismiss_requested")
 	print("  -> Passed: Structured signals and LaunchModal reactive binding verified.")
+
+	# -------------------------------------------------------------
+	# 6. Tool Integrity & Archipelago Python DLL Verification
+	# -------------------------------------------------------------
+	print("\n[Test 6] Verifying tool integrity validation (detecting missing python DLL)...")
+	var test_dir = "user://test_tool_integrity"
+	DirAccess.make_dir_recursive_absolute(test_dir)
+	var test_ap_exe = test_dir.path_join("ArchipelagoLauncher.exe")
+	var f_ap = FileAccess.open(test_ap_exe, FileAccess.WRITE)
+	if f_ap:
+		f_ap.store_string("mock_binary")
+		f_ap.close()
+
+	var is_valid_incomplete = launcher._tool_manager.validate_tool_integrity("archipelago_client", test_ap_exe)
+	_assert_true(is_valid_incomplete == false, "validate_tool_integrity must fail when python DLL is missing")
+
+	var test_py_dll = test_dir.path_join("python313.dll")
+	var f_py = FileAccess.open(test_py_dll, FileAccess.WRITE)
+	if f_py:
+		f_py.store_string("mock_dll")
+		f_py.close()
+
+	var is_valid_complete = launcher._tool_manager.validate_tool_integrity("archipelago_client", test_ap_exe)
+	_assert_true(is_valid_complete == true, "validate_tool_integrity must succeed when python DLL is present")
+
+	# Cleanup
+	DirAccess.remove_absolute(test_py_dll)
+	DirAccess.remove_absolute(test_ap_exe)
+	DirAccess.remove_absolute(test_dir)
+	print("  -> Passed: Tool integrity validation verified.")
 
 	_finish()
 

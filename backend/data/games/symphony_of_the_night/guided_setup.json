@@ -25,6 +25,27 @@
     "enemysanity": false,
     "death_link": false
   },
+  "check_calculator": {
+    "base_count": 30,
+    "base_label": "Castle Relic Locations",
+    "modifiers": [
+      {
+        "key": "boss_locations",
+        "label": "Boss Drops",
+        "values": { "true": 20 }
+      },
+      {
+        "key": "enemysanity",
+        "label": "Enemysanity",
+        "values": { "true": 100 }
+      },
+      {
+        "key": "random_shop",
+        "label": "Librarian Shop Items",
+        "values": { "on": 15 }
+      }
+    ]
+  },
   "required_schema_keys": [
     "item_pool",
     "open_no4"
@@ -273,11 +294,11 @@
           "option_key": "random_shop",
           "label": "Master Librarian Shop Items",
           "choices": [
-            { "id": "on", "name": "Randomized Shop (On)" },
-            { "id": "off", "name": "Vanilla Shop (Off)" },
-            { "id": "on_lib", "name": "Randomized (Always sells Library Card)" },
-            { "id": "on_no_prog", "name": "Randomized (No Progression Items)" },
-            { "id": "on_no_prog_lib", "name": "Randomized (No Progression + Library Card)" }
+            { "id": "on", "title": "Randomized Shop (On)", "name": "Randomized Shop (On)" },
+            { "id": "off", "title": "Vanilla Shop (Off)", "name": "Vanilla Shop (Off)" },
+            { "id": "on_lib", "title": "Randomized (Always sells Library Card)", "name": "Randomized (Always sells Library Card)" },
+            { "id": "on_no_prog", "title": "Randomized (No Progression Items)", "name": "Randomized (No Progression Items)" },
+            { "id": "on_no_prog_lib", "title": "Randomized (No Progression + Library Card)", "name": "Randomized (No Progression + Library Card)" }
           ]
         },
         {
@@ -290,10 +311,10 @@
           "option_key": "drop_mod",
           "label": "Monster Item Drop Rates",
           "choices": [
-            { "id": "normal", "name": "Normal Drop Rate" },
-            { "id": "increased", "name": "Increased Drops" },
-            { "id": "abundant", "name": "Abundant Drops" },
-            { "id": "guaranteed", "name": "Guaranteed Drops (100%)" }
+            { "id": "normal", "title": "Normal Drop Rate", "name": "Normal Drop Rate" },
+            { "id": "increased", "title": "Increased Drops", "name": "Increased Drops" },
+            { "id": "abundant", "title": "Abundant Drops", "name": "Abundant Drops" },
+            { "id": "guaranteed", "title": "Guaranteed Drops (100%)", "name": "Guaranteed Drops (100%)" }
           ]
         }
       ]

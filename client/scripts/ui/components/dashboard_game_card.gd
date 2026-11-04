@@ -33,6 +33,8 @@ const GameIdentityResolver = preload("res://scripts/core/game_identity_resolver.
 var current_game_name: String = ""
 var current_preset: Dictionary = {}
 var slot_name_str: String = ""
+var current_status_info: Dictionary = {}
+var current_checks_info: Dictionary = {}
 var current_owner_name: String = ""
 var is_local_player: bool = true
 var _is_currently_configured: bool = false
@@ -40,7 +42,6 @@ var _tracker_supported: bool = false
 
 
 func _ready() -> void:
-	_ensure_nodes()
 	if is_instance_valid(copy_slot_btn) and not copy_slot_btn.pressed.is_connected(_on_copy_slot_pressed):
 		copy_slot_btn.pressed.connect(_on_copy_slot_pressed)
 	if is_instance_valid(main_action_btn) and not main_action_btn.pressed.is_connected(_on_main_action_pressed):
@@ -52,106 +53,76 @@ func _ready() -> void:
 	if is_instance_valid(tracker_btn) and not tracker_btn.pressed.is_connected(_on_tracker_pressed):
 		tracker_btn.pressed.connect(_on_tracker_pressed)
 
-func _ensure_nodes() -> void:
-	if banner_panel == null:
-		banner_panel = get_node_or_null("%BannerPanel")
-	if banner_background == null:
-		banner_background = get_node_or_null("%BannerBackground")
-	if banner_texture == null:
-		banner_texture = get_node_or_null("%BannerTexture")
-	if fallback_banner == null:
-		fallback_banner = get_node_or_null("%FallbackBanner")
-	if fallback_label == null:
-		fallback_label = get_node_or_null("%FallbackLabel")
-	if mini_progress_bar == null:
-		mini_progress_bar = get_node_or_null("%MiniProgressBar")
-	if game_title_label == null:
-		game_title_label = get_node_or_null("%GameTitleLabel")
-	if mode_tag_label == null:
-		mode_tag_label = get_node_or_null("%ModeTagLabel")
-	if mode_tag_panel == null:
-		mode_tag_panel = get_node_or_null("%ModeTagPanel")
-	if owner_badge == null:
-		owner_badge = get_node_or_null("%OwnerBadge")
-	if slot_val_label == null:
-		slot_val_label = get_node_or_null("%SlotValLabel")
-	if copy_slot_btn == null:
-		copy_slot_btn = get_node_or_null("%CopySlotBtn")
-	if checks_container == null:
-		checks_container = get_node_or_null("%ChecksContainer")
-	if status_pill_panel == null:
-		status_pill_panel = get_node_or_null("%StatusPillPanel")
-	if status_label == null:
-		status_label = get_node_or_null("%StatusLabel")
-	if circular_progress_bar == null:
-		circular_progress_bar = get_node_or_null("%CircularProgressBar")
-	if checks_progress_label == null:
-		checks_progress_label = get_node_or_null("%ChecksProgressLabel")
-	if main_action_btn == null:
-		main_action_btn = get_node_or_null("%MainActionBtn")
-	if config_gear_btn == null:
-		config_gear_btn = get_node_or_null("%ConfigGearBtn")
-	if change_path_btn == null:
-		change_path_btn = get_node_or_null("%ChangePathBtn")
-	if tracker_btn == null:
-		tracker_btn = get_node_or_null("%TrackerBtn")
+	if current_game_name != "":
+		_bind_ui()
 
 func setup(game_name: String, slot_name: String, preset: Dictionary, status_info: Dictionary, checks_info: Dictionary, owner_name: String = "", is_local: bool = true) -> void:
-	_ensure_nodes()
 	current_game_name = game_name
 	current_preset = preset
 	slot_name_str = slot_name
+	current_status_info = status_info
+	current_checks_info = checks_info
 	current_owner_name = owner_name
 	is_local_player = is_local
 	_tracker_supported = is_local and bool(preset.get("tracker", {}).get("supported", false))
+
+	if is_node_ready():
+		_bind_ui()
+
+func _bind_ui() -> void:
 	if is_instance_valid(tracker_btn):
 		tracker_btn.visible = _tracker_supported
-		tracker_btn.tooltip_text = "Open PopTracker for " + game_name
+		tracker_btn.tooltip_text = "Open PopTracker for " + current_game_name
 
-	print("[DashboardCard] Initializing card for: '%s' (Slot: '%s', Owner: '%s', Local: %s)" % [game_name, slot_name, owner_name, str(is_local)])
 
 	# 1. Game Banner Image or Fallback
-	var banner_tex: Texture2D = _load_game_banner(game_name)
+	var banner_tex: Texture2D = _load_game_banner(current_game_name)
 	_set_banner_texture(banner_tex)
 	if banner_tex == null:
-		fallback_label.text = game_name.to_upper()
-		_style_fallback_banner(game_name)
+		fallback_label.text = current_game_name.to_upper()
+		_style_fallback_banner(current_game_name)
 
 	# 2. Title & Single Platform Mode Tag
-	game_title_label.text = game_name
-	_resolve_platform_tag(game_name, preset)
+	game_title_label.text = current_game_name
+	_resolve_platform_tag(current_game_name, current_preset)
 
 	# 3. Ownership Badge & Slot Name
-	if is_local:
+	if is_local_player:
 		owner_badge.text = "(You)"
 		owner_badge.add_theme_color_override("font_color", UITheme.COLOR_LOCAL_PLAYER)
 	else:
-		owner_badge.text = "👤 " + (owner_name if owner_name != "" else "Player")
+		owner_badge.text = "👤 " + (current_owner_name if current_owner_name != "" else "Player")
 		owner_badge.add_theme_color_override("font_color", UITheme.COLOR_HOST_PURPLE)
 
 	slot_val_label.text = "Slot: " + slot_name_str
 	copy_slot_btn.tooltip_text = "Copy slot name '" + slot_name_str + "' to clipboard"
 
 	# 4. Checks Progress (Circular Ring + Mini Bar + Count)
-	update_checks_progress(checks_info)
+	update_checks_progress(current_checks_info)
 
 	# 5. Status Pill & Action Button with Gear
-	var is_configured: bool = status_info.get("is_configured", false)
-	_update_status_and_actions(is_configured, is_local, owner_name, status_info)
+	var is_configured: bool = current_status_info.get("is_configured", false)
+	_update_status_and_actions(is_configured, is_local_player, current_owner_name, current_status_info)
 
 func update_launch_status(status_info: Dictionary) -> void:
-	_ensure_nodes()
+	current_status_info = status_info
+	if not is_node_ready():
+		return
 	var is_configured: bool = status_info.get("is_configured", false)
 	_update_status_and_actions(is_configured, is_local_player, current_owner_name, status_info)
 
 func update_tracker_support(preset: Dictionary) -> void:
-	_ensure_nodes()
+	current_preset = preset
 	_tracker_supported = is_local_player and bool(preset.get("tracker", {}).get("supported", false))
+	if not is_node_ready():
+		return
 	if is_instance_valid(tracker_btn):
 		tracker_btn.visible = _tracker_supported
 
 func update_checks_progress(checks_info: Dictionary) -> void:
-	_ensure_nodes()
+	current_checks_info = checks_info
+	if not is_node_ready():
+		return
 	var g_checked: int = 0
 	var g_total: int = 0
 	if not checks_info.is_empty():
@@ -170,7 +141,6 @@ func update_checks_progress(checks_info: Dictionary) -> void:
 				circular_progress_bar.progress_color = Color(0.2, 0.85, 0.5)
 			else:
 				circular_progress_bar.progress_color = Color(0.67, 0.44, 0.98)
-		print("[DashboardCard] Checks for '%s': %d / %d (%.1f%%)" % [current_game_name, g_checked, g_total, pct])
 	else:
 		checks_progress_label.text = "%d Checks" % g_checked
 		mini_progress_bar.max_value = 100
@@ -207,7 +177,6 @@ func _resolve_platform_tag(game_name: String, preset: Dictionary) -> void:
 
 	mode_tag_label.text = tag
 	mode_tag_label.add_theme_color_override("font_color", col)
-	print("[DashboardCard] '%s' assigned platform mode tag: %s" % [game_name, tag])
 
 func _set_banner_texture(tex: Texture2D) -> void:
 	if is_instance_valid(banner_texture):
@@ -269,7 +238,6 @@ func _update_status_and_actions(is_configured: bool, is_local: bool, owner_name:
 
 			main_action_btn.text = "Download / Setup"
 			main_action_btn.add_theme_color_override("font_color", UITheme.COLOR_ACTION_BLUE)
-		print("[DashboardCard] Local status for '%s': Configured=%s, Action='%s'" % [current_game_name, str(is_configured), main_action_btn.text])
 	else:
 		config_gear_btn.visible = false
 		main_action_btn.disabled = true
@@ -298,7 +266,6 @@ func _style_fallback_banner(game_name: String) -> void:
 
 func _on_main_action_pressed() -> void:
 	if is_local_player:
-		print("[DashboardCard] Main action button pressed for '%s' (is_configured=%s)" % [current_game_name, str(_is_currently_configured)])
 		if _is_currently_configured:
 			launch_pressed.emit(current_game_name)
 		else:
@@ -306,7 +273,6 @@ func _on_main_action_pressed() -> void:
 
 func _on_config_gear_pressed() -> void:
 	if is_local_player:
-		print("[DashboardCard] Config gear button pressed for '%s'" % current_game_name)
 		change_path_pressed.emit(current_game_name)
 
 func _on_tracker_pressed() -> void:
@@ -316,7 +282,6 @@ func _on_tracker_pressed() -> void:
 func _on_copy_slot_pressed() -> void:
 	if slot_name_str != "":
 		DisplayServer.clipboard_set(slot_name_str)
-		print("[DashboardCard] Copied slot name to clipboard: '%s'" % slot_name_str)
 		copy_slot_btn.text = "Copied!"
 		var tree = get_tree()
 		if tree:

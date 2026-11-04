@@ -9,6 +9,8 @@ extends SceneTree
 
 var test_passed: bool = true
 
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
+
 func _init() -> void:
 	_run_suite.call_deferred()
 

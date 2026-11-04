@@ -123,6 +123,9 @@ static func _build_game_options_block(game_title: String, game_options: Dictiona
 		
 	for option_name in game_options.keys():
 		var raw_option_value: Variant = game_options[option_name]
+		if (game_title == "Pokemon Red and Blue" or game_title == "Pokemon Red Blue" or game_title == "Pokemon Red" or game_title == "Pokemon Blue") and str(option_name) == "trainersanity":
+			if raw_option_value is bool:
+				raw_option_value = 317 if raw_option_value else 0
 		block_output += "  " + str(option_name) + ": " + format_yaml_value(raw_option_value, DEFAULT_OPTION_INDENT) + "\n"
 		
 	return block_output

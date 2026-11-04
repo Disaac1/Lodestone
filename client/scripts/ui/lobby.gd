@@ -1,11 +1,13 @@
 extends Control
 
 # --- DEPENDENCIES ---
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
 const YamlBuilder = preload("res://scripts/core/yaml_builder.gd")
 const SaveManager = preload("res://scripts/core/save_manager.gd")
 const GameLauncher = preload("res://scripts/core/game_launcher.gd")
 const GuidedSetupRegistry = preload("res://scripts/guided_setup/guided_setup_registry.gd")
 const GameOptionsService = preload("res://scripts/core/game_options_service.gd")
+const ServerUrlHelper = preload("res://scripts/core/server_url_helper.gd")
 
 # --- CONSTANTS ---
 const VIEW_MODE_SETUP: String = "setup"
@@ -171,6 +173,7 @@ var _tracker_operation_active: bool = false
 func _ready() -> void:
 	print("[Lobby] Initializing Lobby scene for Room: '%s' (User: %s)" % [NetworkManager.room_code, NetworkManager.user_id])
 	_connect_ui_signals()
+	DiagnosticsManager.register_launcher(launcher)
 	_load_launcher_catalogs()
 	_connect_network_signals()
 	hosting_mode_option.item_selected.connect(_on_hosting_mode_selected)
@@ -424,20 +427,14 @@ func _render_play_dashboard() -> void:
 	_update_dashboard_server_status()
 
 func _get_formatted_ap_address() -> String:
-	var url: String = NetworkManager.get_ap_server_url()
-	if url.begins_with("wss://"):
-		return url
-	elif url.begins_with("ws://"):
-		if "/ap/" in url:
-			return url
-		return url.replace("ws://", "")
-	return url
+	return ServerUrlHelper.format_ap_address(NetworkManager.get_ap_server_url())
 
 func _update_dashboard_server_status() -> void:
 	var archipelago_server_url: String = NetworkManager.get_ap_server_url()
 	if archipelago_server_url != "":
 		var clean_address: String = _get_formatted_ap_address()
-		server_port_value.text = clean_address
+		server_port_value.text = ServerUrlHelper.strip_protocol(clean_address)
+		server_port_value.tooltip_text = clean_address
 		if is_instance_valid(connection_dot):
 			connection_dot.text = "●"
 			connection_dot.add_theme_color_override("font_color", COLOR_SERVER_ACTIVE)
@@ -500,7 +497,8 @@ func _update_players_ui(players: Array = []) -> void:
 	if NetworkManager.seed_status == "done":
 		if is_instance_valid(status_label):
 			status_label.visible = false
-		active_seed_badge.visible = true
+		if is_instance_valid(active_seed_badge):
+			active_seed_badge.visible = false
 		view_switcher_hbox.visible = true
 		if not _auto_switched_to_play:
 			_auto_switched_to_play = true
@@ -920,7 +918,7 @@ func _on_launch_download_pressed() -> void:
 				_continue_launch_confirm(result_path_or_msg)
 			else:
 				_on_launcher_failed(_active_launch_game, result_path_or_msg)
-		)
+		, true)
 	else:
 		launch_overlay.show_download_card("Downloading Game Files (" + _active_launch_game + ")")
 		launcher.ensure_pc_game_installed(self, _active_launch_game, _active_launch_preset, func(success: bool, result_path_or_msg: String):

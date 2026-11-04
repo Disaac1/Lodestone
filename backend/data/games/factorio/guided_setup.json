@@ -1,0 +1,294 @@
+{
+  "game_title": "Factorio",
+  "default_config": {
+    "goal": "rocket",
+    "max_science_pack": "space_science_pack",
+    "silo": "vanilla",
+    "satellite": "vanilla",
+    "craftsanity": 0,
+    "free_samples": "stack",
+    "tech_tree_layout": "single",
+    "recipe_ingredients": "rocket",
+    "min_tech_cost": 5,
+    "max_tech_cost": 1000,
+    "energy_link": true,
+    "death_link": false,
+    "attack_traps": 0,
+    "evolution_traps": 0,
+    "teleport_traps": 0
+  },
+  "check_calculator": {
+    "base_count": 140,
+    "base_label": "Science Research Tech Nodes",
+    "modifiers": [
+      {
+        "key": "max_science_pack",
+        "label": "Science Tier Cap",
+        "values": {
+          "utility_science_pack": -20,
+          "chemical_science_pack": -75,
+          "logistic_science_pack": -105
+        }
+      },
+      {
+        "key": "craftsanity",
+        "label": "Craftsanity Recipes",
+        "multiplier": 1
+      }
+    ]
+  },
+  "required_schema_keys": [
+    "goal",
+    "max_science_pack",
+    "tech_tree_layout",
+    "silo"
+  ],
+  "steps": [
+    {
+      "num": 1,
+      "title": "1. Goal & Research Science Cap",
+      "description": "Step 1: Choose win condition, maximum science tier, and research cost range",
+      "controls": [
+        {
+          "type": "preset_grid",
+          "columns": 3,
+          "presets": [
+            {
+              "id": "standard_rocket",
+              "title": "🚀 Standard Rocket",
+              "desc": "Launch a rocket with vanilla recipes, full stack technology samples, and energy link.",
+              "values": {
+                "goal": "rocket",
+                "max_science_pack": "space_science_pack",
+                "silo": "vanilla",
+                "satellite": "vanilla",
+                "craftsanity": 0,
+                "free_samples": "stack",
+                "tech_tree_layout": "single",
+                "recipe_ingredients": "rocket",
+                "min_tech_cost": 5,
+                "max_tech_cost": 1000,
+                "energy_link": true,
+                "death_link": false,
+                "attack_traps": 0,
+                "evolution_traps": 0,
+                "teleport_traps": 0
+              }
+            },
+            {
+              "id": "fast_logistics",
+              "title": "⚡ Quick Logistics",
+              "desc": "Capped at Chemical (Blue) science with spawned rocket silo for a streamlined factory run.",
+              "values": {
+                "goal": "rocket",
+                "max_science_pack": "chemical_science_pack",
+                "silo": "spawn",
+                "satellite": "vanilla",
+                "craftsanity": 0,
+                "free_samples": "stack",
+                "tech_tree_layout": "single",
+                "recipe_ingredients": "rocket",
+                "min_tech_cost": 5,
+                "max_tech_cost": 250,
+                "energy_link": true,
+                "death_link": false,
+                "attack_traps": 0,
+                "evolution_traps": 0,
+                "teleport_traps": 0
+              }
+            },
+            {
+              "id": "hardcore_satellite",
+              "title": "💀 Interstellar Hardcore",
+              "desc": "Satellite victory with randomized recipes, diamond tech tree, biter traps, and DeathLink.",
+              "values": {
+                "goal": "satellite",
+                "max_science_pack": "space_science_pack",
+                "silo": "randomize_recipe",
+                "satellite": "randomize_recipe",
+                "craftsanity": 25,
+                "free_samples": "none",
+                "tech_tree_layout": "small_diamonds",
+                "recipe_ingredients": "science_pack",
+                "min_tech_cost": 10,
+                "max_tech_cost": 1500,
+                "energy_link": true,
+                "death_link": true,
+                "attack_traps": 5,
+                "evolution_traps": 5,
+                "teleport_traps": 2
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "card_grid",
+          "option_key": "goal",
+          "columns": 2,
+          "items": [
+            {
+              "id": "rocket",
+              "title": "🚀 Launch Rocket",
+              "desc": "Build a Rocket Silo, craft rocket components, and launch a rocket to win."
+            },
+            {
+              "id": "satellite",
+              "title": "🛰️ Satellite Launch",
+              "desc": "Extended goal: construct a Satellite and launch it into orbit inside the rocket."
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "max_science_pack",
+          "label": "Maximum Science Pack Tier in Tech Tree",
+          "choices": [
+            { "id": "space_science_pack", "title": "Space Science (White - Full Tree)", "name": "Space Science" },
+            { "id": "utility_science_pack", "title": "Utility Science (Yellow)", "name": "Utility Science" },
+            { "id": "production_science_pack", "title": "Production Science (Purple)", "name": "Production Science" },
+            { "id": "chemical_science_pack", "title": "Chemical Science (Blue - Short Run)", "name": "Chemical Science" },
+            { "id": "logistic_science_pack", "title": "Logistic Science (Green - Micro Run)", "name": "Logistic Science" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 2,
+      "title": "2. Tech Tree & Recipes",
+      "description": "Step 2: Technology tree structure, rocket silo placement, and recipe ingredient rules",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "tech_tree_layout",
+          "label": "Tech Tree Progression Structure",
+          "choices": [
+            { "id": "single", "title": "Single (Independent technology nodes)", "name": "Single" },
+            { "id": "small_diamonds", "title": "Small Diamonds (Interdependent clusters of 4-9 nodes)", "name": "Small Diamonds" },
+            { "id": "medium_diamonds", "title": "Medium Diamonds (Clustered graphs)", "name": "Medium Diamonds" },
+            { "id": "trees", "title": "Tree Hierarchies (Branching tech paths)", "name": "Trees" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "recipe_ingredients",
+          "label": "Recipe Randomization",
+          "choices": [
+            { "id": "rocket", "title": "Rocket Only (Randomize rocket component ingredients)", "name": "Rocket Only" },
+            { "id": "science_pack", "title": "Science Packs & Rocket (Randomize science and rocket recipes)", "name": "Science Packs & Rocket" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "free_samples",
+          "label": "Free Tech Samples",
+          "choices": [
+            { "id": "stack", "title": "Full Stack (Receive 1 stack of newly unlocked items upon research)", "name": "Full Stack" },
+            { "id": "half_stack", "title": "Half Stack", "name": "Half Stack" },
+            { "id": "single_craft", "title": "Single Item", "name": "Single Item" },
+            { "id": "none", "title": "Disabled (No free items on research)", "name": "Disabled" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Check Pools & Craftsanity",
+      "description": "Step 3: Craftsanity recipe checks, silo placement, and tech research costs",
+      "controls": [
+        {
+          "type": "slider",
+          "option_key": "craftsanity",
+          "label": "Craftsanity Checks (Crafting distinct recipes grants items):",
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "suffix": " Items"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "silo",
+          "label": "Rocket Silo Placement & Crafting",
+          "choices": [
+            { "id": "vanilla", "title": "Vanilla Crafting (Craft silo with standard materials)", "name": "Vanilla" },
+            { "id": "spawn", "title": "Auto-Spawn Silo (Rocket Silo pre-placed near starting spawn)", "name": "Auto-Spawn Silo" },
+            { "id": "randomize_recipe", "title": "Randomize Silo Recipe (Shuffled ingredient costs)", "name": "Randomize Silo Recipe" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "slider",
+          "option_key": "min_tech_cost",
+          "label": "Minimum Technology Science Cost",
+          "min": 1,
+          "max": 50,
+          "step": 1,
+          "suffix": " Science Packs"
+        },
+        {
+          "type": "slider",
+          "option_key": "max_tech_cost",
+          "label": "Maximum Technology Science Cost",
+          "min": 100,
+          "max": 5000,
+          "step": 100,
+          "suffix": " Science Packs"
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Multiworld, Traps & EnergyLink",
+      "description": "Step 4: Energy grid sharing, biter attack traps, and team DeathLink",
+      "controls": [
+        {
+          "type": "toggle",
+          "option_key": "energy_link",
+          "label": "EnergyLink (Share electrical factory power with other multiworld worlds)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "death_link",
+          "label": "DeathLink (Engineer deaths trigger team deaths in multiworld)"
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "slider",
+          "option_key": "attack_traps",
+          "label": "Biter Attack Traps in Item Pool",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "suffix": " Traps"
+        },
+        {
+          "type": "slider",
+          "option_key": "evolution_traps",
+          "label": "Biter Evolution Traps in Item Pool",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "suffix": " Traps"
+        },
+        {
+          "type": "slider",
+          "option_key": "teleport_traps",
+          "label": "Teleport Traps in Item Pool",
+          "min": 0,
+          "max": 10,
+          "step": 1,
+          "suffix": " Traps"
+        }
+      ]
+    }
+  ]
+}

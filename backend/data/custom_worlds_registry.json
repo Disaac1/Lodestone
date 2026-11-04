@@ -58,17 +58,17 @@
   "spire2.apworld": {
     "game": "Slay the Spire 2",
     "filename": "spire2.apworld",
-    "repo": "spire-rando/spire2-apworld",
+    "repo": "dlueben1/Slay-the-Spire-2-Archipelago",
     "release_tag": "latest",
-    "download_url": "https://github.com/spire-rando/spire2-apworld/releases/latest/download/spire2.apworld",
+    "download_url": "https://github.com/dlueben1/Slay-the-Spire-2-Archipelago/releases/download/2.0.0/spire2.apworld",
     "description": "Slay the Spire II Archipelago World"
   },
   "tboir.apworld": {
     "game": "The Binding of Isaac Repentance",
     "filename": "tboir.apworld",
-    "repo": "TheRealGamer/tboir-apworld",
+    "repo": "NaveTK/Archipelago",
     "release_tag": "latest",
-    "download_url": "https://github.com/TheRealGamer/tboir-apworld/releases/latest/download/tboir.apworld",
+    "download_url": "https://github.com/NaveTK/Archipelago/releases/latest/download/tboir.apworld",
     "description": "The Binding of Isaac: Repentance Archipelago World"
   }
 }

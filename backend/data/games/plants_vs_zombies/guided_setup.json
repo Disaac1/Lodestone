@@ -14,6 +14,32 @@
     "zombie_randomisation": false,
     "death_link": false
   },
+  "check_calculator": {
+    "base_count": 49,
+    "base_label": "Adventure Mode Levels",
+    "modifiers": [
+      {
+        "key": "minigame_levels",
+        "label": "Minigame Levels",
+        "values": { "randomised_order": 20, "level_items": 20 }
+      },
+      {
+        "key": "puzzle_levels",
+        "label": "Puzzle Levels",
+        "values": { "randomised_order": 18, "level_items": 18 }
+      },
+      {
+        "key": "survival_levels",
+        "label": "Survival Levels",
+        "values": { "randomised_order": 10, "level_items": 10 }
+      },
+      {
+        "key": "bonus_levels",
+        "label": "Bonus Levels",
+        "values": { "randomised_order": 10, "level_items": 10 }
+      }
+    ]
+  },
   "required_schema_keys": [
     "adventure_levels_goal",
     "adventure_mode_progression"
@@ -21,8 +47,8 @@
   "steps": [
     {
       "num": 1,
-      "title": "1. Presets",
-      "description": "Step 1: Choose a Quick Preset or customize settings step-by-step",
+      "title": "1. Presets & Goal",
+      "description": "Step 1: Choose a Quick Preset or configure settings step-by-step",
       "controls": [
         {
           "type": "preset_grid",
@@ -86,14 +112,10 @@
               }
             }
           ]
-        }
-      ]
-    },
-    {
-      "num": 2,
-      "title": "2. Goal & Level Progression",
-      "description": "Step 2: Choose how many levels unlock the boss and which extra modes are randomized",
-      "controls": [
+        },
+        {
+          "type": "separator"
+        },
         {
           "type": "slider",
           "option_key": "adventure_levels_goal",
@@ -107,10 +129,14 @@
           "type": "toggle",
           "option_key": "fast_goal",
           "label": "Fast Boss Access (Dr. Zomboss unlocked immediately once level goal is met)"
-        },
-        {
-          "type": "separator"
-        },
+        }
+      ]
+    },
+    {
+      "num": 2,
+      "title": "2. World & Progression",
+      "description": "Step 2: Choose how Adventure Mode levels and areas unlock",
+      "controls": [
         {
           "type": "card_grid",
           "option_key": "adventure_mode_progression",
@@ -137,38 +163,60 @@
               "desc": "Every single level must be unlocked as an individual item."
             }
           ]
-        },
-        {
-          "type": "separator"
-        },
-        {
-          "type": "card_grid",
-          "option_key": "minigame_levels",
-          "columns": 3,
-          "items": [
-            {
-              "id": "off",
-              "title": "Minigames: Off",
-              "desc": "Do not include Minigames in the randomization pool."
-            },
-            {
-              "id": "randomised_order",
-              "title": "Minigames: Shuffled",
-              "desc": "Minigames are shuffled and rewarded upon completion."
-            },
-            {
-              "id": "level_items",
-              "title": "Minigames: Level Items",
-              "desc": "Individual minigames unlock as items in the multiworld."
-            }
-          ]
         }
       ]
     },
     {
       "num": 3,
-      "title": "3. Starting Plants & Seed Slots",
-      "description": "Step 3: Configure starting equipment and seed pack limits",
+      "title": "3. Check Pools & Extra Modes",
+      "description": "Step 3: Minigames, Puzzles, Survival, and Bonus Level Pools",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "minigame_levels",
+          "label": "Minigame Levels Pool",
+          "choices": [
+            { "id": "off", "title": "Off (Exclude from Pool)" },
+            { "id": "randomised_order", "title": "Shuffled Order (Recommended)" },
+            { "id": "level_items", "title": "Individual Level Unlock Items" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "puzzle_levels",
+          "label": "Puzzle Levels Pool (I, Zombie & Vasebreaker)",
+          "choices": [
+            { "id": "off", "title": "Off (Exclude from Pool)" },
+            { "id": "randomised_order", "title": "Shuffled Order" },
+            { "id": "level_items", "title": "Individual Level Unlock Items" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "survival_levels",
+          "label": "Survival Mode Levels Pool",
+          "choices": [
+            { "id": "off", "title": "Off (Exclude from Pool)" },
+            { "id": "randomised_order", "title": "Shuffled Order" },
+            { "id": "level_items", "title": "Individual Level Unlock Items" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "bonus_levels",
+          "label": "Bonus Levels Pool",
+          "choices": [
+            { "id": "off", "title": "Off (Exclude from Pool)" },
+            { "id": "randomised_order", "title": "Shuffled Order" },
+            { "id": "level_items", "title": "Individual Level Unlock Items" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Starting Plants & Seed Slots",
+      "description": "Step 4: Configure starting equipment and seed pack limits",
       "controls": [
         {
           "type": "slider",
@@ -195,9 +243,9 @@
       ]
     },
     {
-      "num": 4,
-      "title": "4. Difficulty & Multiworld",
-      "description": "Step 4: Configure zombie randomization and multiworld options",
+      "num": 5,
+      "title": "5. Difficulty & Multiworld",
+      "description": "Step 5: Configure zombie randomization and multiworld options",
       "controls": [
         {
           "type": "toggle",

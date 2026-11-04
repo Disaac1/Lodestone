@@ -468,11 +468,34 @@ export function handleConnection(ws: WebSocket) {
     (ws as any).isAlive = true;
   });
 
+function sanitizeForLog(obj: any): any {
+  if (!obj || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(sanitizeForLog);
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'yaml' && typeof v === 'string') {
+      out[k] = `<yaml: ${v.length} chars>`;
+    } else if (k === 'players' && Array.isArray(v)) {
+      out[k] = v.map((p: any) => {
+        if (p && typeof p === 'object' && typeof p.yaml === 'string') {
+          return { ...p, yaml: `<yaml: ${p.yaml.length} chars>` };
+        }
+        return sanitizeForLog(p);
+      });
+    } else if (v && typeof v === 'object') {
+      out[k] = sanitizeForLog(v);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
   ws.on('message', (rawData) => {
     try {
       const data: ClientMessage = JSON.parse(rawData.toString());
       if ((data.type as any) !== 'ping' && (data.type as any) !== 'pong') {
-        console.log('Received message:', data);
+        console.log('Received message:', sanitizeForLog(data));
       }
 
       (ws as any).isAlive = true;
@@ -812,9 +835,16 @@ function handleDisconnect(ws: WebSocket) {
           if (hasClients) {
             console.log(`Lobby users disconnected from room ${roomCode}, but game clients are still connected on port ${server.port}. Keeping AP server active.`);
           } else {
+            const recheck = db.prepare("SELECT COUNT(*) as count FROM Users WHERE room_code = ? AND is_connected = 1").get(roomCode) as { count: number } | undefined;
+            if (recheck && recheck.count > 0) {
+              console.log(`User reconnected to room ${roomCode} during cleanup check. Keeping AP server active.`);
+              return;
+            }
             killRoomServer(roomCode);
           }
         }).catch(() => {
+          const recheck = db.prepare("SELECT COUNT(*) as count FROM Users WHERE room_code = ? AND is_connected = 1").get(roomCode) as { count: number } | undefined;
+          if (recheck && recheck.count > 0) return;
           killRoomServer(roomCode);
         });
       } else {

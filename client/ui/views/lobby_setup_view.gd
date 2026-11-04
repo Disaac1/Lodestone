@@ -39,7 +39,8 @@ func update_players_ui(players: Array = [], local_user_id: String = "", is_local
 
 	for player_info in sorted_players:
 		var player_row: Control = render_player_row(player_info, local_user_id, is_local_host)
-		player_list.add_child(player_row)
+		if is_instance_valid(player_row) and player_row.get_parent() != player_list:
+			player_list.add_child(player_row)
 
 func update_players(players: Array = [], local_user_id: String = "", is_local_host: bool = false) -> void:
 	update_players_ui(players, local_user_id, is_local_host)
@@ -57,6 +58,8 @@ func get_sorted_players(players: Array, local_user_id: String) -> Array:
 
 func render_player_row(player_info: Dictionary, local_user_id: String, is_local_host: bool) -> Control:
 	var card = PlayerCardScene.instantiate()
+	if is_instance_valid(player_list) and not card.is_inside_tree():
+		player_list.add_child(card)
 	card.setup(player_info, local_user_id, is_local_host)
 	card.game_clicked.connect(func(g_name: String):
 		if NetworkManager.seed_status == "done":
@@ -78,4 +81,3 @@ func update_seed_status(has_seed: bool, has_spoiler: bool) -> void:
 		setup_download_seed_btn.visible = has_seed
 	if is_instance_valid(setup_view_spoiler_btn):
 		setup_view_spoiler_btn.visible = has_spoiler
-

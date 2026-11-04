@@ -94,6 +94,12 @@ func process_existing(
 ) -> void:
 	var verified_path: String = found_rom
 	if found_rom != target_rom_path and not FileAccess.file_exists(target_rom_path):
+		var src_ext: String = found_rom.get_extension().to_lower()
+		var dst_ext: String = target_rom_path.get_extension().to_lower()
+		if src_ext != dst_ext and src_ext != "zip":
+			print("[Launcher Error] Refusing to copy ROM with mismatching extension: ", found_rom, " -> ", target_rom_path)
+			callback.call(false, "Found ROM extension (." + src_ext + ") does not match required extension (." + dst_ext + ").")
+			return
 		DirAccess.make_dir_recursive_absolute(target_rom_path.get_base_dir())
 		var copy_error: Error = DirAccess.copy_absolute(found_rom, target_rom_path)
 		if copy_error == OK:

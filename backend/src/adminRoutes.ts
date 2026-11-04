@@ -16,7 +16,7 @@ import {
   setPlayerReady,
   transferRoomHost
 } from './roomManager.js';
-import { clearCache } from './archipelagoRunner.js';
+import { clearCache, generateYamlTemplatesZip, invalidateTemplatesCache } from './archipelagoRunner.js';
 import { getLogs, clearLogs, addLog } from './logger.js';
 import { loadRegistry, downloadFromUpstream } from './customWorldRoutes.js';
 
@@ -573,12 +573,36 @@ router.get('/custom-worlds/:filename/download', (req: Request, res: Response) =>
 });
 
 /**
+ * GET /api/admin/yaml-templates/download
+ * Download all game YAML templates bundled in a ZIP archive with custom roms in /custom
+ */
+router.get('/yaml-templates/download', async (req: Request, res: Response) => {
+  try {
+    const force = req.query.force === 'true';
+    const zipPath = await generateYamlTemplatesZip(force);
+    res.download(zipPath, 'yaml_templates.zip');
+  } catch (err: any) {
+    console.error('Failed to generate yaml templates archive:', err);
+    res.status(500).json({ error: 'Failed to generate YAML templates: ' + err.message });
+  }
+});
+
+/**
  * POST /api/admin/custom-worlds/upload
  * Upload new .apworld file
  */
 router.post('/custom-worlds/upload', upload.single('file'), (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
+  }
+  if (req.file.filename.endsWith('.apworld') || req.file.originalname.endsWith('.apworld')) {
+    try {
+      const zip = new AdmZip(req.file.path);
+      if (zip.getEntries().length === 0) throw new Error('Archive contains no files');
+    } catch (zipErr: any) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+      return res.status(400).json({ error: 'Uploaded file is not a valid .apworld archive: ' + zipErr.message });
+    }
   }
   clearCache();
   res.json({ success: true, filename: req.file.filename, size: req.file.size });

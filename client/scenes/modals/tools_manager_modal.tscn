@@ -1,0 +1,212 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Theme" path="res://themes/main_theme.tres" id="1_theme"]
+[ext_resource type="Script" path="res://scripts/ui/modals/tools_manager_modal.gd" id="2_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.11, 0.12, 0.16, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.28, 0.38, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ToolsManagerModal" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_theme")
+script = ExtResource("2_script")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PopupPanel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(820, 560)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="Center/PopupPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Center/PopupPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderTop" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "🔧 Tools & Dependencies Manager"
+
+[node name="HeaderSpacer" type="Control" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OpenFolderBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Open tools directory in Windows Explorer"
+text = "📂 Open Folder"
+
+[node name="RefreshBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+tooltip_text = "Refresh installed status"
+text = "🔄"
+
+[node name="CloseBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/HeaderTop"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+text = "✕"
+
+[node name="HeaderBottom" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Subtitle" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Manage emulators, Archipelago clients, and trackers."
+text_overrun_behavior = 3
+clip_text = true
+
+[node name="StatsBox" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox/HeaderBottom"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TotalSizeBadge" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "💾 Space: 0 B"
+
+[node name="InstalledCountBadge" type="Label" parent="Center/PopupPanel/Margin/VBox/HeaderBottom/StatsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "📦 0/0 Installed"
+
+[node name="FilterRow" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SearchInput" type="LineEdit" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Search tools or emulators (e.g. Dolphin, BizHawk, Archipelago)..."
+clear_button_enabled = true
+
+[node name="FilterAllBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "All Tools"
+
+[node name="FilterInstalledBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Installed Only"
+
+[node name="FilterNotInstalledBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Not Installed"
+
+[node name="HSeparator" type="HSeparator" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 3
+
+[node name="ToolsContainer" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="EmptyLabel" type="Label" parent="Center/PopupPanel/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+text = "No tools matched your search."
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="Center/PopupPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PathInfoLabel" type="Label" parent="Center/PopupPanel/Margin/VBox/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 11
+text = "Tools location: user://tools"
+text_overrun_behavior = 3
+clip_text = true
+
+[node name="DoneBtn" type="Button" parent="Center/PopupPanel/Margin/VBox/Footer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+text = "Done"
+
+[node name="ToolFileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Open a File"
+initial_position = 2
+size = Vector2i(700, 500)
+ok_button_text = "Select"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.exe ; Windows Executable", "*.* ; All Files")
+
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Confirm"
+initial_position = 2
+size = Vector2i(450, 180)
+ok_button_text = "Confirm"
+cancel_button_text = "Cancel"

@@ -44,6 +44,52 @@
     "death_link": false,
     "enable_wonder_trading": true
   },
+  "check_calculator": {
+    "base_count": 8,
+    "base_label": "Hoenn Gym Badges",
+    "modifiers": [
+      {
+        "key": "overworld_items",
+        "label": "Overworld Items",
+        "values": { "true": 140 }
+      },
+      {
+        "key": "hidden_items",
+        "label": "Hidden Items",
+        "values": { "true": 60 }
+      },
+      {
+        "key": "npc_gifts",
+        "label": "NPC Gifts",
+        "values": { "true": 40 }
+      },
+      {
+        "key": "berry_trees",
+        "label": "Berry Trees",
+        "values": { "true": 88 }
+      },
+      {
+        "key": "rods",
+        "label": "Fishing Rods",
+        "values": { "true": 3 }
+      },
+      {
+        "key": "event_tickets",
+        "label": "Event Tickets",
+        "values": { "true": 4 }
+      },
+      {
+        "key": "trainersanity",
+        "label": "Trainersanity",
+        "values": { "true": 300 }
+      },
+      {
+        "key": "dexsanity",
+        "label": "Dexsanity",
+        "values": { "true": 202 }
+      }
+    ]
+  },
   "required_schema_keys": [
     "goal",
     "norman_count",
@@ -63,8 +109,8 @@
   "steps": [
     {
       "num": 1,
-      "title": "1. Goal & Pace",
-      "description": "Step 1: Choose your Win Condition and Game Length",
+      "title": "1. Goal & Badges",
+      "description": "Step 1: Choose your Win Condition and Gym Badge Gates",
       "controls": [
         {
           "type": "card_grid",
@@ -122,8 +168,57 @@
     },
     {
       "num": 2,
-      "title": "2. World & Items",
-      "description": "Step 2: Item Locations & World Access Presets",
+      "title": "2. Pokémon & Encounters",
+      "description": "Step 2: Wild Encounters, Starters, Types, and Abilities",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "wild_pokemon",
+          "label": "Wild Pokémon Randomization:",
+          "choices": [
+            { "id": "vanilla", "title": "🌿 Vanilla (Original wild encounters)" },
+            { "id": "match_types", "title": "⚖️ Match Typing (Random Pokémon matching original slot typing)" },
+            { "id": "completely_random", "title": "🌀 Completely Random (Chaos wild encounters)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "starters",
+          "label": "Starter Pokémon:",
+          "choices": [
+            { "id": "vanilla", "title": "🌱 Vanilla (Treecko, Torchic, Mudkip)" },
+            { "id": "random_three_stage", "title": "🔥 Random 3-Stage Evolutions (3-stage evolution lines)" },
+            { "id": "completely_random", "title": "🎲 Completely Random (Any base Pokémon)" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "types",
+          "label": "Randomize Types:",
+          "choices": [
+            { "id": "vanilla", "title": "Disabled (Original elemental types)" },
+            { "id": "completely_random", "title": "Randomize (Randomized Pokémon typing)" },
+            { "id": "shuffle", "title": "Shuffle (Shuffle type chart pairings)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "abilities",
+          "label": "Randomize Abilities:",
+          "choices": [
+            { "id": "vanilla", "title": "Disabled (Original abilities)" },
+            { "id": "completely_random", "title": "Randomize (Randomized abilities)" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Check Pools & Sanity",
+      "description": "Step 3: Item Pools, Overworld Checks & Expansion Sanities",
       "controls": [
         {
           "type": "preset_grid",
@@ -131,48 +226,56 @@
           "presets": [
             {
               "id": "standard",
-              "name": "🔑 Standard",
+              "title": "🔑 Standard",
               "desc": "Shuffles Key Items, Badges, HMs & Overworld items. Great default!",
               "values": {
                 "badges": "completely_random",
                 "hms": "completely_random",
                 "key_items": true,
+                "bikes": true,
                 "overworld_items": true,
                 "hidden_items": false,
                 "npc_gifts": false,
                 "dexsanity": false,
-                "trainersanity": false
+                "trainersanity": false,
+                "berry_trees": false,
+                "rods": false
               }
             },
             {
               "id": "full",
-              "name": "🎁 Full Shuffle",
+              "title": "🎁 Full Shuffle",
               "desc": "Adds Hidden Items, NPC Gifts, Berry Trees, Rods & Tickets to the pool.",
               "values": {
                 "badges": "completely_random",
                 "hms": "completely_random",
                 "key_items": true,
+                "bikes": true,
                 "overworld_items": true,
                 "hidden_items": true,
                 "npc_gifts": true,
-                "berry_trees": true,
-                "rods": true,
                 "event_tickets": true,
+                "rods": true,
+                "berry_trees": true,
                 "dexsanity": false,
                 "trainersanity": false
               }
             },
             {
-              "id": "chaos",
-              "name": "🌀 Max Chaos",
-              "desc": "Enables Trainersanity & Dexsanity! Adds 300+ item locations.",
+              "id": "all_checks",
+              "title": "🌟 All Checks (Extreme)",
+              "desc": "Maximum check density including Dexsanity & Trainersanity.",
               "values": {
                 "badges": "completely_random",
                 "hms": "completely_random",
                 "key_items": true,
+                "bikes": true,
                 "overworld_items": true,
                 "hidden_items": true,
                 "npc_gifts": true,
+                "event_tickets": true,
+                "rods": true,
+                "berry_trees": true,
                 "dexsanity": true,
                 "trainersanity": true
               }
@@ -185,200 +288,109 @@
         {
           "type": "toggle",
           "option_key": "key_items",
-          "label": "Randomize Key Items (Scope, Letter, Basement Key, etc.)"
+          "label": "🔑 Key Items & Progression (Shuffle Key Items into the pool)"
         },
         {
           "type": "toggle",
-          "option_key": "overworld_items",
-          "label": "Randomize Overworld Pokéballs"
-        },
-        {
-          "type": "toggle",
-          "option_key": "hidden_items",
-          "label": "Randomize Hidden Items"
-        },
-        {
-          "type": "toggle",
-          "option_key": "npc_gifts",
-          "label": "Randomize NPC Gifts"
-        },
-        {
-          "type": "toggle",
-          "option_key": "trainersanity",
-          "label": "Trainersanity (Defeating trainers awards items)"
-        },
-        {
-          "type": "toggle",
-          "option_key": "dexsanity",
-          "label": "Dexsanity (Catching Pokémon species awards items)"
-        }
-      ]
-    },
-    {
-      "num": 3,
-      "title": "3. Pokémon & Trainers",
-      "description": "Step 3: Pokémon Species & Trainer Party Randomization",
-      "controls": [
-        {
-          "type": "preset_grid",
-          "columns": 3,
-          "presets": [
-            {
-              "id": "vanilla",
-              "name": "🌿 Vanilla",
-              "desc": "Original GBA Pokémon encounters, starters & trainer teams.",
-              "values": {
-                "wild_pokemon": "vanilla",
-                "starters": "vanilla",
-                "trainer_parties": "vanilla",
-                "types": "vanilla",
-                "abilities": "vanilla"
-              }
-            },
-            {
-              "id": "balanced",
-              "name": "⚖️ Balanced",
-              "desc": "Randomized species matched by Base Stat Total & Type!",
-              "values": {
-                "wild_pokemon": "match_base_stats_and_type",
-                "starters": "match_base_stats_and_type",
-                "trainer_parties": "match_base_stats",
-                "types": "vanilla",
-                "abilities": "vanilla"
-              }
-            },
-            {
-              "id": "chaos",
-              "name": "🤪 Total Chaos",
-              "desc": "Wilds, Starters, Trainers, Types & Abilities completely random!",
-              "values": {
-                "wild_pokemon": "completely_random",
-                "starters": "completely_random",
-                "trainer_parties": "completely_random",
-                "types": "completely_random",
-                "abilities": "completely_random"
-              }
-            }
-          ]
+          "option_key": "bikes",
+          "label": "🚲 Bicycle Shuffle (Mach Bike & Acro Bike in item pool)"
         },
         {
           "type": "separator"
         },
         {
-          "type": "dropdown",
-          "option_key": "wild_pokemon",
-          "label": "Wild Pokémon Encounters:",
-          "choices": [
-            { "id": "vanilla", "title": "Vanilla" },
-            { "id": "match_base_stats", "title": "Match Base Stats" },
-            { "id": "match_type", "title": "Match Type" },
-            { "id": "match_base_stats_and_type", "title": "Match Base Stats & Type" },
-            { "id": "completely_random", "title": "Completely Random" }
-          ]
+          "type": "toggle",
+          "option_key": "overworld_items",
+          "label": "📦 Overworld Pokéball Items (Item balls on ground)"
         },
         {
           "type": "toggle",
-          "option_key": "types",
-          "label": "Randomize Pokémon Types"
+          "option_key": "hidden_items",
+          "label": "🔍 Hidden Dowsing Machine Items"
         },
         {
           "type": "toggle",
-          "option_key": "abilities",
-          "label": "Randomize Pokémon Abilities"
+          "option_key": "npc_gifts",
+          "label": "🎁 NPC Gift Items"
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "trainersanity",
+          "label": "🧑‍🌾 Trainersanity (Every defeated trainer yields a multiworld item)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "dexsanity",
+          "label": "📖 Dexsanity (Catching Pokémon species yields items)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "berry_trees",
+          "label": "🍒 Berry Trees (Picking berries is an item check)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "rods",
+          "label": "🎣 Fishing Rods (Old Rod, Good Rod, Super Rod randomized)"
         }
       ]
     },
     {
       "num": 4,
       "title": "4. Battle & Leveling",
-      "description": "Step 4: Movesets, Battle Mechanics & EXP Multipliers",
+      "description": "Step 4: EXP Rates, Catch Rates, and Move Tutors",
       "controls": [
-        {
-          "type": "dropdown",
-          "option_key": "level_up_moves",
-          "label": "Level-Up Movesets:",
-          "choices": [
-            { "id": "vanilla", "title": "Vanilla Movesets" },
-            { "id": "randomized", "title": "Randomized Level-Up Moves" },
-            { "id": "start_with_four_moves", "title": "Randomized (Start with 4 Moves)" }
-          ]
-        },
-        {
-          "type": "slider",
-          "option_key": "move_match_type_bias",
-          "label": "Move Match Type Bias (Probability learned move matches Pokémon type):",
-          "min": 0,
-          "max": 100,
-          "step": 5,
-          "suffix": "%",
-          "condition": {
-            "option_key": "level_up_moves",
-            "not_equals": "vanilla"
-          }
-        },
-        {
-          "type": "toggle",
-          "option_key": "tm_tutor_moves",
-          "label": "Randomize TM & Move Tutor Moves"
-        },
-        {
-          "type": "separator"
-        },
         {
           "type": "slider",
           "option_key": "exp_modifier",
-          "label": "EXP Gain Multiplier:",
+          "label": "EXP Multiplier:",
           "min": 50,
           "max": 500,
           "step": 25,
           "suffix": "%"
         },
         {
+          "type": "separator"
+        },
+        {
           "type": "toggle",
           "option_key": "reusable_tms_tutors",
-          "label": "Reusable TMs & Infinite Move Tutors"
+          "label": "💿 Reusable TMs & Move Tutors (Teach moves infinitely)"
         },
         {
           "type": "toggle",
           "option_key": "guaranteed_catch",
-          "label": "Guaranteed Catch (Every Pokéball succeeds)"
+          "label": "🎯 100% Guaranteed Catch Rate (Any Pokéball catches successfully)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "turbo_a",
+          "label": "⚡ Turbo A (Hold A to fast-forward text dialog)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "better_shops",
+          "label": "🏪 Better Poké Marts (All standard balls & items available early)"
         }
       ]
     },
     {
       "num": 5,
-      "title": "5. QoL & Extras",
-      "description": "Step 5: Quality of Life & Multiplayer Extras",
+      "title": "5. Multiworld & Links",
+      "description": "Step 5: DeathLink & Online Multiplayer Features",
       "controls": [
         {
           "type": "toggle",
-          "option_key": "turbo_a",
-          "label": "⚡ Turbo A (Hold A to auto-advance dialogue)"
-        },
-        {
-          "type": "toggle",
-          "option_key": "better_shops",
-          "label": "🏪 Better Shops (Pokémarts sell all TMs & Stones)"
-        },
-        {
-          "type": "toggle",
-          "option_key": "music",
-          "label": "🎵 Randomize Music Tracks"
-        },
-        {
-          "type": "toggle",
-          "option_key": "fanfares",
-          "label": "🎺 Randomize Pickups & Fanfares"
-        },
-        {
-          "type": "toggle",
           "option_key": "death_link",
-          "label": "💀 DeathLink (Fainting triggers death for partners)"
+          "label": "💀 DeathLink (Whiting out in battle broadcasts death to multiworld)"
         },
         {
           "type": "toggle",
           "option_key": "enable_wonder_trading",
-          "label": "🤝 Wonder Trading (Trade Pokémon online in Pokénav/Center)"
+          "label": "🎁 Wonder Trading (Trade Pokémon with other multiworld worlds)"
         }
       ]
     }

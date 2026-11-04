@@ -21,9 +21,12 @@ config/windows_native_icon="res://icon.ico"
 
 LodestoneLogger="*res://scripts/core/lodestone_logger.gd"
 NetworkManager="*res://scripts/core/network_manager.gd"
+DiagnosticsManager="*res://scripts/core/diagnostics_manager.gd"
 
 [display]
 
 window/subwindows/embed_subwindows=false
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/size/min_width=960
+window/size/min_height=540

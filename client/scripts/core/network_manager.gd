@@ -1,5 +1,7 @@
 extends Node
 
+const RoomSessionState = preload("res://scripts/core/room_session_state.gd")
+const ServerUrlHelper = preload("res://scripts/core/server_url_helper.gd")
 const Updater = preload("res://scripts/core/updater.gd")
 
 signal connected_to_server
@@ -21,20 +23,53 @@ const PING_INTERVAL: float = 20.0
 var is_reconnecting: bool = false
 
 var server_url: String = "wss://lodestone.disaac1.com"
-var player_name: String = ""
-var room_code: String = ""
-var user_id: String = ""
-var players: Array = []
-var seed_status: String = "idle"
-var seed_zip_name: String = ""
-var seed_spoiler_name: String = ""
-var tunnel_url: String = ""
-var locked_by: String = ""
-var checks: Dictionary = {}
-var hosting_mode: String = "wayfinder_backend"
-var hosting_status: String = ""
-var hosting_room_url: String = ""
-var hosting_server_url: String = ""
+
+# Typed room session state
+var session: RoomSessionState = RoomSessionState.new()
+
+# Backward-compatibility property forwarders to typed session object
+var player_name: String:
+	get: return session.player_name
+	set(v): session.player_name = v
+var room_code: String:
+	get: return session.room_code
+	set(v): session.room_code = v
+var user_id: String:
+	get: return session.user_id
+	set(v): session.user_id = v
+var players: Array:
+	get: return session.players
+	set(v): session.players = v
+var seed_status: String:
+	get: return session.seed_status
+	set(v): session.seed_status = v
+var seed_zip_name: String:
+	get: return session.seed_zip_name
+	set(v): session.seed_zip_name = v
+var seed_spoiler_name: String:
+	get: return session.seed_spoiler_name
+	set(v): session.seed_spoiler_name = v
+var tunnel_url: String:
+	get: return session.tunnel_url
+	set(v): session.tunnel_url = v
+var locked_by: String:
+	get: return session.locked_by
+	set(v): session.locked_by = v
+var checks: Dictionary:
+	get: return session.checks
+	set(v): session.checks = v
+var hosting_mode: String:
+	get: return session.hosting_mode
+	set(v): session.hosting_mode = v
+var hosting_status: String:
+	get: return session.hosting_status
+	set(v): session.hosting_status = v
+var hosting_room_url: String:
+	get: return session.hosting_room_url
+	set(v): session.hosting_room_url = v
+var hosting_server_url: String:
+	get: return session.hosting_server_url
+	set(v): session.hosting_server_url = v
 
 func _enter_tree() -> void:
 	# Mount verified self-updating patches before the root scene loads
@@ -49,7 +84,10 @@ func connect_to_server(url: String = server_url) -> Error:
 		socket.close()
 	server_url = url
 	socket = WebSocketPeer.new() # Instantiate a new peer
-	var err = socket.connect_to_url(url)
+	var connect_url = url
+	if "://localhost" in connect_url:
+		connect_url = connect_url.replace("://localhost", "://127.0.0.1")
+	var err = socket.connect_to_url(connect_url)
 	if err == OK:
 		is_connected = false
 		set_process(true)
@@ -152,8 +190,37 @@ func _handle_raw_message(text: String) -> void:
 		
 	var type: String = data.get("type", "")
 	if type != "ping" and type != "pong":
-		print("NetworkManager received: ", data)
+		print("NetworkManager received: ", _sanitize_for_log(data))
 	_handle_message(data)
+
+func _sanitize_for_log(val: Variant) -> Variant:
+	if typeof(val) == TYPE_DICTIONARY:
+		var sanitized: Dictionary = {}
+		for k in val:
+			if k == "yaml" and typeof(val[k]) == TYPE_STRING:
+				sanitized[k] = "<yaml: %d chars>" % val[k].length()
+			elif k == "players" and typeof(val[k]) == TYPE_ARRAY:
+				var sanitized_players: Array = []
+				for p in val[k]:
+					if typeof(p) == TYPE_DICTIONARY:
+						var sp: Dictionary = p.duplicate()
+						if sp.has("yaml") and typeof(sp["yaml"]) == TYPE_STRING:
+							sp["yaml"] = "<yaml: %d chars>" % sp["yaml"].length()
+						sanitized_players.append(sp)
+					else:
+						sanitized_players.append(p)
+				sanitized["players"] = sanitized_players
+			elif typeof(val[k]) == TYPE_DICTIONARY or typeof(val[k]) == TYPE_ARRAY:
+				sanitized[k] = _sanitize_for_log(val[k])
+			else:
+				sanitized[k] = val[k]
+		return sanitized
+	elif typeof(val) == TYPE_ARRAY:
+		var sanitized_arr: Array = []
+		for item in val:
+			sanitized_arr.append(_sanitize_for_log(item))
+		return sanitized_arr
+	return val
 
 func _handle_message(data: Dictionary) -> void:
 	var type = data.get("type", "")
@@ -161,71 +228,25 @@ func _handle_message(data: Dictionary) -> void:
 		"ping", "pong":
 			return
 		"room_created":
-			room_code = data.get("roomCode", "")
-			user_id = data.get("userId", "")
+			session.room_code = data.get("roomCode", "")
+			session.user_id = data.get("userId", "")
 			room_created.emit(room_code, user_id)
 			
 		"room_joined":
-			room_code = data.get("roomCode", "")
-			user_id = data.get("userId", "")
-			players = data.get("players", [])
-			seed_status = data.get("seedStatus", "idle")
-			var sz = data.get("seedZipName")
-			seed_zip_name = sz if sz != null else ""
-			var ss = data.get("seedSpoilerName")
-			seed_spoiler_name = ss if ss != null else ""
-			var tu = data.get("tunnelUrl")
-			tunnel_url = tu if tu != null else ""
-			var hosting_mode_joined = data.get("hostingMode")
-			hosting_mode = hosting_mode_joined if hosting_mode_joined is String else "wayfinder_backend"
-			var hosting_status_joined = data.get("hostingStatus")
-			hosting_status = hosting_status_joined if hosting_status_joined is String else ""
-			var hosting_room_url_joined = data.get("hostingRoomUrl")
-			hosting_room_url = hosting_room_url_joined if hosting_room_url_joined is String else ""
-			var hosting_server_url_joined = data.get("hostingServerUrl")
-			hosting_server_url = hosting_server_url_joined if hosting_server_url_joined is String else ""
-			var lb = data.get("lockedBy")
-			locked_by = lb if lb != null else ""
-			var ch = data.get("checks")
-			checks = ch if ch is Dictionary else {}
-			
-			for p in players:
-				if p.get("userId") == user_id:
-					player_name = p.get("name", "")
-					break
-					
-			room_joined.emit(room_code, user_id, players)
+			session.apply_room_joined(data)
+			room_joined.emit(session.room_code, session.user_id, session.players)
 			
 		"room_state":
-			players = data.get("players", [])
-			seed_status = data.get("seedStatus", "idle")
-			var sz2 = data.get("seedZipName")
-			seed_zip_name = sz2 if sz2 != null else ""
-			var ss2 = data.get("seedSpoilerName")
-			seed_spoiler_name = ss2 if ss2 != null else ""
-			var tu2 = data.get("tunnelUrl")
-			tunnel_url = tu2 if tu2 != null else ""
-			var hosting_mode_value = data.get("hostingMode")
-			hosting_mode = hosting_mode_value if hosting_mode_value is String else "wayfinder_backend"
-			var hosting_status_value = data.get("hostingStatus")
-			hosting_status = hosting_status_value if hosting_status_value is String else ""
-			var hosting_room_url_value = data.get("hostingRoomUrl")
-			hosting_room_url = hosting_room_url_value if hosting_room_url_value is String else ""
-			var hosting_server_url_value = data.get("hostingServerUrl")
-			hosting_server_url = hosting_server_url_value if hosting_server_url_value is String else ""
-			var lb2 = data.get("lockedBy")
-			locked_by = lb2 if lb2 != null else ""
-			var ch2 = data.get("checks")
-			if ch2 is Dictionary:
-				checks = ch2
-				checks_updated.emit(checks)
-			room_state_updated.emit(players)
+			session.apply_room_state(data)
+			if data.get("checks") is Dictionary:
+				checks_updated.emit(session.checks)
+			room_state_updated.emit(session.players)
 
 		"checks_updated":
 			var ch3 = data.get("checks")
 			if ch3 is Dictionary:
-				checks = ch3
-				checks_updated.emit(checks)
+				session.apply_checks(ch3)
+				checks_updated.emit(session.checks)
 			
 		"error":
 			var message = data.get("message", "Unknown error")
@@ -309,11 +330,7 @@ func leave_room() -> void:
 			"userId": user_id
 		})
 	disconnect_from_server()
-	room_code = ""
-	user_id = ""
-	players = []
-	checks = {}
-	hosting_server_url = ""
+	session.reset()
 
 func close_room() -> void:
 	print("[NetworkManager] Closing room: ", room_code)
@@ -322,46 +339,22 @@ func close_room() -> void:
 	leave_room()
 
 func get_http_url() -> String:
-	var base = server_url
-	if base.begins_with("ws://"):
-		return base.replace("ws://", "http://")
-	elif base.begins_with("wss://"):
-		return base.replace("wss://", "https://")
-	return "https://lodestone.disaac1.com"
+	var url: String = ServerUrlHelper.ws_to_http(server_url)
+	if "://localhost" in url:
+		return url.replace("://localhost", "://127.0.0.1")
+	return url
 
 func get_ap_server_url() -> String:
-	if hosting_server_url != "":
-		return hosting_server_url
-	if tunnel_url == "":
-		return ""
-	if "localhost" in tunnel_url or "127.0.0.1" in tunnel_url:
-		# Extract server host (remote IP or domain) from lobby connection url
-		var parts = server_url.split("://")
-		if parts.size() > 1:
-			var host_part = parts[1].split(":")[0].split("/")[0]
-			var port = tunnel_url.split(":")[-1]
-			return "ws://" + host_part + ":" + port
-
-	# If tunnel_url is a wss:// URL without an explicit port, inject :443
-	# Archipelago client requires an explicit port, otherwise it defaults to port 38281
-	if tunnel_url.begins_with("wss://"):
-		var scheme_split: PackedStringArray = tunnel_url.split("://")
-		if scheme_split.size() > 1:
-			var rest: String = scheme_split[1]
-			var slash_idx: int = rest.find("/")
-			var host_part: String = rest.substr(0, slash_idx) if slash_idx != -1 else rest
-			var path_part: String = rest.substr(slash_idx) if slash_idx != -1 else ""
-			if not ":" in host_part:
-				return "wss://" + host_part + ":443" + path_part
-	return tunnel_url
+	return ServerUrlHelper.resolve_ap_server_url(session.tunnel_url, server_url, session.hosting_server_url)
 
 func fetch_http(endpoint: String) -> Dictionary:
 	var http = HTTPRequest.new()
 	http.timeout = 30.0
 	add_child(http)
 	var url = get_http_url() + endpoint
+	var req_url = url.replace("://localhost", "://127.0.0.1") if "://localhost" in url else url
 	print("[HTTP GET] Requesting: ", url)
-	var err = http.request(url)
+	var err = http.request(req_url)
 	if err != OK:
 		http.queue_free()
 		return {"error": "Failed to initiate HTTP request"}

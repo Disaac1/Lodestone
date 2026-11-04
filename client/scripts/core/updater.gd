@@ -107,6 +107,23 @@ static func migrate_legacy_userdata() -> void:
 
 	var marker_file := new_dir.path_join(".migrated_from_wayfinder")
 	if FileAccess.file_exists(marker_file):
+		var ap_exe := new_dir.path_join("tools/Archipelago/ArchipelagoLauncher.exe")
+		var ap_old := old_dir.path_join("tools/Archipelago")
+		if FileAccess.file_exists(ap_exe) and DirAccess.dir_exists_absolute(ap_old):
+			var ap_dir := DirAccess.open(new_dir.path_join("tools/Archipelago"))
+			var has_py := false
+			if ap_dir:
+				ap_dir.list_dir_begin()
+				var f := ap_dir.get_next()
+				while f != "":
+					if not ap_dir.current_is_dir() and f.to_lower().begins_with("python") and f.to_lower().ends_with(".dll"):
+						has_py = true
+						break
+					f = ap_dir.get_next()
+				ap_dir.list_dir_end()
+			if not has_py:
+				print("[Migration] Incomplete Archipelago detected in migrated directory; completing migration...")
+				_copy_directory_recursive(ap_old, new_dir.path_join("tools/Archipelago"))
 		return
 
 	if not DirAccess.dir_exists_absolute(old_dir):

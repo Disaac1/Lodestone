@@ -1,6 +1,8 @@
 class_name RomCatalogManager
 extends RefCounted
 
+const ServerUrlHelper = preload("res://scripts/core/server_url_helper.gd")
+
 const ROMS_JSON_PATH: String = "user://roms.json"
 const DEFAULT_FALLBACK_URL: String = "https://lodestone.disaac1.com/roms.json"
 
@@ -143,25 +145,4 @@ static func get_default_catalog_url(server_address: String = "") -> String:
 	var raw = server_address.strip_edges()
 	if raw == "":
 		return DEFAULT_FALLBACK_URL
-		
-	var http_base: String = ""
-	if raw.begins_with("ws://"):
-		http_base = raw.replace("ws://", "http://")
-	elif raw.begins_with("wss://"):
-		http_base = raw.replace("wss://", "https://")
-	elif raw.begins_with("http://") or raw.begins_with("https://"):
-		http_base = raw
-	else:
-		http_base = "https://" + raw
-		
-	# Strip any trailing path or slash
-	var parts: PackedStringArray = http_base.split("://")
-	if parts.size() > 1:
-		var scheme = parts[0]
-		var rest = parts[1]
-		var first_slash = rest.find("/")
-		if first_slash != -1:
-			rest = rest.substr(0, first_slash)
-		http_base = scheme + "://" + rest
-		
-	return http_base + "/roms.json"
+	return ServerUrlHelper.get_http_origin(raw) + "/roms.json"

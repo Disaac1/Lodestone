@@ -43,6 +43,9 @@ func _get_steps_data() -> Array:
 func _get_required_schema_keys() -> Array:
 	return json_definition.get("required_schema_keys", [])
 
+func _get_check_calculator() -> Dictionary:
+	return json_definition.get("check_calculator", {})
+
 static func validate_schema_json(schema: Dictionary, req_keys: Array) -> Dictionary:
 	return validate_schema_for_keys(schema, req_keys)
 
@@ -63,6 +66,17 @@ func _build_step_content(step_num: int, container: VBoxContainer) -> void:
 		
 	var controls = step_data.get("controls", [])
 	for ctrl in controls:
+		# Check optional condition
+		if ctrl.has("condition"):
+			var cond = ctrl["condition"]
+			var cond_key = cond.get("option_key", "")
+			if cond.has("not_equals"):
+				if str(current_config.get(cond_key, "")) == str(cond["not_equals"]):
+					continue
+			if cond.has("equals"):
+				if str(current_config.get(cond_key, "")) != str(cond["equals"]):
+					continue
+
 		var c_type = ctrl.get("type", "")
 		match c_type:
 			"separator":
@@ -95,24 +109,22 @@ func _build_step_content(step_num: int, container: VBoxContainer) -> void:
 				var max_v = int(ctrl.get("max", 100))
 				var step_v = int(ctrl.get("step", 1))
 				var suffix = ctrl.get("suffix", "")
-				
-				# Check optional condition
-				if ctrl.has("condition"):
-					var cond = ctrl["condition"]
-					var cond_key = cond.get("option_key", "")
-					if cond.has("not_equals"):
-						if str(current_config.get(cond_key, "")) == str(cond["not_equals"]):
-							continue
-				
 				add_slider_option(container, label, opt_key, min_v, max_v, step_v, suffix)
 				
-			"toggle":
+			"toggle", "checkbox":
 				var opt_key = ctrl.get("option_key", "")
 				var label = ctrl.get("label", opt_key)
 				add_toggle_option(container, label, opt_key)
 				
-			"dropdown":
+			"dropdown", "choice":
 				var opt_key = ctrl.get("option_key", "")
 				var label = ctrl.get("label", opt_key)
 				var choices = ctrl.get("choices", ctrl.get("options", []))
 				add_dropdown_option(container, label, opt_key, choices)
+
+			"chip_grid", "multi_select":
+				var opt_key = ctrl.get("option_key", "")
+				var label = ctrl.get("label", opt_key)
+				var cols = ctrl.get("columns", 3)
+				var items = ctrl.get("items", [])
+				add_multi_select_option(container, label, opt_key, items, cols)

@@ -42,6 +42,7 @@ backend/failed_generations/
 backend/logs/
 backend/temp_seeds/
 temp_seeds/
+backend/data/*.zip
 
 # OS and filesystem artifacts
 Thumbs.db

@@ -193,6 +193,7 @@ text = "Player Slot Actions (Release Checks / Collect Items):"
 [node name="SlotsScroll" type="ScrollContainer" parent="Center/PopupPanel/Margin/VBox/HostTabContainer/Quick Actions/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="SlotsContainer" type="VBoxContainer" parent="Center/PopupPanel/Margin/VBox/HostTabContainer/Quick Actions/VBox/SlotsScroll"]
 unique_name_in_owner = true

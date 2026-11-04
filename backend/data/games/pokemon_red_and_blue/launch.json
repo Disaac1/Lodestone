@@ -1,0 +1,50 @@
+{
+  "game_name": "Pokemon Red and Blue",
+  "short_tag": "RedBlue",
+  "aliases": [
+    "Pokemon Red",
+    "Pokemon Blue",
+    "Pok\u00e9mon Red",
+    "Pok\u00e9mon Blue",
+    "Pokemon Red and Blue",
+    "pokemon_red_and_blue"
+  ],
+  "support_tier": 1,
+  "launch_mode": "ap_client",
+  "patch_extension": ".apred",
+  "patch_extension_aliases": [
+    ".apred",
+    ".apblue",
+    ".gb"
+  ],
+  "client_tool": "archipelago_client",
+  "client_component": "BizHawk Client",
+  "emulator_tool": "bizhawk",
+  "required_rom": "Pokemon Red (UE) [!].gb",
+  "rom_aliases": [
+    "Pokemon - Red Version (USA, Europe).gb",
+    "Pokemon - Blue Version (USA, Europe).gb",
+    "Pokemon Red.gb",
+    "Pokemon Blue.gb",
+    "Pokemon Blue (UE) [!].gb"
+  ],
+  "rom_hashes": {
+    "md5": "ea9bcae617fdf159b045185467ae584c",
+    "sha1": "358509806b74e2d3fb8e95c102a06ee6ffb8f5ee"
+  },
+  "host_yaml": {
+    "pokemon_red_blue_options": {
+      "rom_file": "{rom_path}"
+    }
+  },
+  "auto_connect": true,
+  "tracker": {
+    "supported": true,
+    "pack_name": "Pok\u00e9mon Red and Blue AP Tracker",
+    "package_uid": "pokemon_red_blue_tracker",
+    "pack_version": "1.0.0",
+    "pack_download_url": "https://github.com/black-sliver/PopTracker-Pokemon-Red-Blue/releases/latest/download/pokemon_red_blue_tracker.zip",
+    "auto_tracking": true
+  },
+  "install_instructions": "Tier 1 Full Support: Click Launch to automatically configure your GB ROM, launch BizHawk, and connect to the Archipelago server. If BizHawk is missing, click Auto-Install below."
+}

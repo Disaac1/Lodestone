@@ -29,6 +29,7 @@ DEFAULT_TEST_FILES = [
     "backend_lockdown_test.py",
     "test_release_sync_and_downloads.py",
     "test_multiplayer_generation_and_sync.py",
+    "test_yaml_templates_download.py",
 ]
 
 def parse_args():
@@ -108,6 +109,10 @@ def write_markdown_summary(summary_path, results, total_passed, total_failed, du
     print(f"Wrote Markdown summary to {summary_path}")
 
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     args = parse_args()
     
     print("=" * 66)

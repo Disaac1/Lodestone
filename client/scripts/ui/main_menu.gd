@@ -17,6 +17,9 @@ extends Control
 @onready var rom_catalog_modal: Control = %RomCatalogModal
 @onready var rom_file_dialog: FileDialog = %RomFileDialog
 @onready var update_overlay: Control = %UpdateOverlay
+@onready var tools_btn: Button = get_node_or_null("%ToolsBtn")
+@onready var tools_manager_modal: Control = get_node_or_null("%ToolsManagerModal")
+var launcher: GameLauncher = GameLauncher.new()
 @onready var subtitle_label: Label = get_node("CenterContainer/HBox/CardPanel/Margin/VBox/Subtitle")
 
 const SETTINGS_PATH = "user://settings.json"
@@ -41,6 +44,13 @@ func _ready() -> void:
 			if img and not img.is_empty():
 				DisplayServer.set_icon(img)
 	error_label.text = ""
+	launcher.load_launcher_config()
+	DiagnosticsManager.register_launcher(launcher)
+	if is_instance_valid(tools_btn):
+		tools_btn.pressed.connect(func():
+			if is_instance_valid(tools_manager_modal):
+				tools_manager_modal.open(launcher)
+		)
 	
 	# Connect local button signals
 	create_btn.pressed.connect(_on_create_pressed)
@@ -55,7 +65,7 @@ func _ready() -> void:
 	rom_download_btn.pressed.connect(_on_rom_download_pressed)
 	rom_load_file_btn.pressed.connect(func(): rom_file_dialog.popup_centered(Vector2(650, 450)))
 	rom_file_dialog.file_selected.connect(_on_rom_file_selected)
-	rom_manage_btn.pressed.connect(func(): rom_catalog_modal.open(rom_url_input.text.strip_edges()))
+	rom_manage_btn.pressed.connect(func(): rom_catalog_modal.open(launcher))
 	rom_folder_btn.pressed.connect(func(): OS.shell_open(ProjectSettings.globalize_path("user://")))
 	rom_catalog_modal.catalog_updated.connect(func(_info): _refresh_rom_catalog_status())
 	rom_url_input.text_changed.connect(func(_t: String): _save_all_settings())
@@ -238,8 +248,16 @@ func _validate_name() -> bool:
 func _connect_network() -> void:
 	var url = server_input.text.strip_edges()
 	if not url.begins_with("ws://") and not url.begins_with("wss://"):
-		error_label.text = "Server address must start with ws:// or wss://"
-		return
+		if url.begins_with("http://"):
+			url = "ws://" + url.substr(7)
+		elif url.begins_with("https://"):
+			url = "wss://" + url.substr(8)
+		elif url.begins_with("localhost") or url.begins_with("127.0.0.1"):
+			url = "ws://" + url
+		elif url != "":
+			url = "wss://" + url
+		server_input.text = url
+		_save_all_settings()
 		
 	var err = NetworkManager.connect_to_server(url)
 	if err != OK:

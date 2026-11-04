@@ -109,6 +109,7 @@ script = ExtResource("3_spinner")
 [node name="Scroll" type="ScrollContainer" parent="Center/PopupPanel/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="GamePopupGrid" type="GridContainer" parent="Center/PopupPanel/Margin/VBox/Scroll"]
 unique_name_in_owner = true

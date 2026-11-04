@@ -1,6 +1,8 @@
 import { exec, execFile, spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import AdmZip from 'adm-zip';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,6 +13,8 @@ const BACKEND_ROOT = path.join(__dirname, '..');
 const ARCHIPELAGO_PATH = path.join(BACKEND_ROOT, 'archipelago_core');
 const CUSTOM_WORLDS_DIR = path.join(ARCHIPELAGO_PATH, 'custom_worlds');
 const PARSER_SCRIPT_PATH = path.join(BACKEND_ROOT, 'src', 'parse_options.py');
+const TEMPLATES_SCRIPT_PATH = path.join(BACKEND_ROOT, 'src', 'generate_templates.py');
+const TEMPLATES_ZIP_PATH = path.join(BACKEND_ROOT, 'data', 'yaml_templates.zip');
 
 console.log(`Archipelago core path: ${ARCHIPELAGO_PATH}`);
 console.log(`Custom worlds path: ${CUSTOM_WORLDS_DIR}`);
@@ -67,18 +71,19 @@ export function patchGenerateDiagnostics(): void {
  * Ensures the Archipelago core repository is cloned locally.
  * Clones a lightweight/shallow copy from GitHub if missing.
  */
-export function ensureArchipelagoCore(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (fs.existsSync(path.join(ARCHIPELAGO_PATH, 'worlds', '__init__.py'))) {
-      console.log('Archipelago core package detected.');
-      patchMultiServerKeepalive();
-      patchGenerateDiagnostics();
-      return resolve();
-    }
+export async function ensureArchipelagoCore(): Promise<void> {
+  if (fs.existsSync(path.join(ARCHIPELAGO_PATH, 'worlds', '__init__.py'))) {
+    console.log('Archipelago core package detected.');
+    patchMultiServerKeepalive();
+    patchGenerateDiagnostics();
+    await ensureArchipelagoDependencies();
+    await ensureServerBaseRom('Zelda no Densetsu - Kamigami no Triforce (Japan).sfc');
+    return;
+  }
 
-    console.log('Archipelago core package not found. Shallow cloning repository...');
-    
-    // We clone headlessly. It takes only ~20-30MB.
+  console.log('Archipelago core package not found. Shallow cloning repository...');
+  
+  await new Promise<void>((resolve, reject) => {
     const child = spawn('git', ['clone', '--depth', '1', 'https://github.com/ArchipelagoMW/Archipelago.git', ARCHIPELAGO_PATH], {
       stdio: 'inherit'
     });
@@ -94,9 +99,69 @@ export function ensureArchipelagoCore(): Promise<void> {
       }
       console.log('Archipelago core repository cloned successfully.');
       patchMultiServerKeepalive();
+      patchGenerateDiagnostics();
       resolve();
     });
   });
+
+  await ensureArchipelagoDependencies();
+  await ensureServerBaseRom('Zelda no Densetsu - Kamigami no Triforce (Japan).sfc');
+}
+
+/**
+ * Automatically ensures that any base ROM required on the backend for multiworld generation exists.
+ * If missing, downloads it from backend/data/roms.json and unpacks if compressed.
+ */
+export async function ensureServerBaseRom(romFileName: string): Promise<boolean> {
+  const destPath = path.join(ARCHIPELAGO_PATH, romFileName);
+  if (fs.existsSync(destPath)) return true;
+
+  const romsJsonPath = path.join(BACKEND_ROOT, 'data', 'roms.json');
+  if (!fs.existsSync(romsJsonPath)) return false;
+
+  try {
+    const catalog = JSON.parse(fs.readFileSync(romsJsonPath, 'utf-8'));
+    const entry = catalog[romFileName] || catalog[path.basename(romFileName, path.extname(romFileName))];
+    const downloadUrl = typeof entry === 'string' ? entry : entry?.url;
+    if (!downloadUrl) return false;
+
+    console.log(`[Archipelago Core] Automatically downloading required base ROM "${romFileName}" from ${downloadUrl}...`);
+    const resp = await fetch(downloadUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+    if (!resp.ok) {
+      console.warn(`[Archipelago Core] Failed to download base ROM ${romFileName}: HTTP ${resp.status}`);
+      return false;
+    }
+
+    const arrayBuffer = await resp.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // If it's a zip archive (PK\x03\x04), extract matching entry
+    if (buffer.length > 4 && buffer[0] === 0x50 && buffer[1] === 0x4B && buffer[2] === 0x03 && buffer[3] === 0x04) {
+      const zip = new AdmZip(buffer);
+      const zipEntries = zip.getEntries();
+      const targetEntry = zipEntries.find(e => 
+        !e.isDirectory && (e.entryName === romFileName || path.basename(e.entryName) === romFileName)
+      ) || zipEntries.find(e => !e.isDirectory && (e.entryName.endsWith('.sfc') || e.entryName.endsWith('.gba') || e.entryName.endsWith('.z64')));
+
+      if (targetEntry) {
+        fs.writeFileSync(destPath, targetEntry.getData());
+        console.log(`[Archipelago Core] Extracted base ROM "${romFileName}" to ${destPath} (${targetEntry.header.size} bytes).`);
+        return true;
+      } else {
+        console.warn(`[Archipelago Core] Could not find "${romFileName}" inside downloaded zip archive.`);
+        return false;
+      }
+    } else {
+      fs.writeFileSync(destPath, buffer);
+      console.log(`[Archipelago Core] Saved base ROM "${romFileName}" to ${destPath} (${buffer.length} bytes).`);
+      return true;
+    }
+  } catch (err: any) {
+    console.warn(`[Archipelago Core] Error downloading base ROM "${romFileName}":`, err.message);
+    return false;
+  }
 }
 
 /**
@@ -110,6 +175,67 @@ export function getPythonCommand(): { exe: string; prefixArgs: string[] } {
     return { exe: 'py', prefixArgs: ['-3.12'] };
   }
   return { exe: 'python', prefixArgs: [] };
+}
+
+/**
+ * Known custom world Python package dependencies and their pip package names.
+ */
+const KNOWN_WORLD_DEPENDENCIES: Record<string, string> = {
+  dolphin_memory_engine: 'dolphin-memory-engine',
+  websockets: 'websockets',
+  pyevermizer: 'pyevermizer',
+  zilliandomizer: 'zilliandomizer',
+  colorama: 'colorama',
+};
+
+/**
+ * Installs a Python package using the resolved Python executable and pip.
+ */
+export function installPythonPackage(packageName: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const { exe: pythonExe, prefixArgs } = getPythonCommand();
+    console.log(`[Dependencies] Installing Python package "${packageName}" via pip...`);
+    const args = [...prefixArgs, '-m', 'pip', 'install', packageName];
+    execFile(pythonExe, args, { maxBuffer: 10 * 1024 * 1024 }, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`[Dependencies] Failed to install "${packageName}":`, stderr || error.message);
+        resolve(false);
+      } else {
+        console.log(`[Dependencies] Successfully installed "${packageName}".`);
+        resolve(true);
+      }
+    });
+  });
+}
+
+/**
+ * Checks if a Python module is importable in the environment.
+ */
+export function isPythonModuleAvailable(moduleName: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const { exe: pythonExe, prefixArgs } = getPythonCommand();
+    const args = [...prefixArgs, '-c', `import ${moduleName}`];
+    execFile(pythonExe, args, (error) => {
+      resolve(!error);
+    });
+  });
+}
+
+/**
+ * Ensures required and common custom world Python dependencies are installed.
+ */
+export async function ensureArchipelagoDependencies(): Promise<void> {
+  for (const [moduleName, pipName] of Object.entries(KNOWN_WORLD_DEPENDENCIES)) {
+    try {
+      const available = await isPythonModuleAvailable(moduleName);
+      if (!available) {
+        console.log(`[Dependencies] Module "${moduleName}" is missing. Auto-installing "${pipName}"...`);
+        await installPythonPackage(pipName);
+      }
+    } catch (e: any) {
+      console.warn(`[Dependencies] Warning checking module ${moduleName}:`, e.message);
+    }
+  }
 }
 
 /**
@@ -154,11 +280,95 @@ function runParser(gameName: string): Promise<any> {
   });
 }
 
+function runGenerateTemplates(outputDir: string): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const { exe: pythonExe, prefixArgs } = getPythonCommand();
+    const args = [
+      ...prefixArgs,
+      TEMPLATES_SCRIPT_PATH,
+      ARCHIPELAGO_PATH,
+      outputDir,
+      CUSTOM_WORLDS_DIR
+    ];
+
+    const options = {
+      maxBuffer: 20 * 1024 * 1024,
+      env: {
+        ...process.env,
+        SKIP_REQUIREMENTS_UPDATE: '1'
+      }
+    };
+
+    execFile(pythonExe, args, options, (error, stdout, stderr) => {
+      if (error) {
+        console.error('Template generator error:', stderr);
+        return reject(new Error(stderr || error.message));
+      }
+      try {
+        const jsonMatch = stdout.trim().match(/\{[\s\S]*\}$/);
+        const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { success: true };
+        resolve(result);
+      } catch (e: any) {
+        console.warn('Could not parse template generator JSON output:', stdout);
+        resolve({ success: true, raw: stdout });
+      }
+    });
+  });
+}
+
+/**
+ * Generates all YAML templates (standard worlds in root, custom worlds in custom/)
+ * and returns the absolute path to the resulting ZIP archive.
+ */
+export async function generateYamlTemplatesZip(force: boolean = false): Promise<string> {
+  const currentFingerprint = getCustomWorldsFingerprint();
+  if (!force && fs.existsSync(TEMPLATES_ZIP_PATH) && templatesZipFingerprint === currentFingerprint) {
+    return TEMPLATES_ZIP_PATH;
+  }
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'wf_templates_'));
+  try {
+    console.log('[ArchipelagoRunner] Generating YAML templates package...');
+    const result = await runGenerateTemplates(tempDir);
+    console.log('[ArchipelagoRunner] Template generation result:', result);
+
+    const zip = new AdmZip();
+    zip.addLocalFolder(tempDir);
+
+    const dataDir = path.dirname(TEMPLATES_ZIP_PATH);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    zip.writeZip(TEMPLATES_ZIP_PATH);
+    templatesZipFingerprint = currentFingerprint;
+    return TEMPLATES_ZIP_PATH;
+  } finally {
+    try {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    } catch {}
+  }
+}
+
 import db from './db.js';
 
 const optionsCache = new Map<string, any>();
 let gamesCache: string[] | null = null;
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+let templatesZipFingerprint: string | null = null;
+
+export function invalidateTemplatesCache(): void {
+  templatesZipFingerprint = null;
+  if (fs.existsSync(TEMPLATES_ZIP_PATH)) {
+    try {
+      fs.unlinkSync(TEMPLATES_ZIP_PATH);
+      console.log('YAML templates zip cache invalidated and file deleted.');
+    } catch (err: any) {
+      console.warn('Failed to delete cached YAML templates zip:', err.message);
+    }
+  }
+}
 
 /**
  * Clears the games list and options schemas cache (both in-memory and DB).
@@ -166,6 +376,7 @@ const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export function clearCache(): void {
   gamesCache = null;
   optionsCache.clear();
+  invalidateTemplatesCache();
   try {
     db.prepare('DELETE FROM OptionsCache').run();
     console.log('Archipelago runner options and games caches (memory and DB) cleared.');
@@ -310,9 +521,21 @@ export interface PlayerYaml {
 export function generateSeed(
   roomCode: string, 
   players: PlayerYaml[], 
-  onLog: (line: string) => void
+  onLog: (line: string) => void,
+  isRetry: boolean = false
 ): Promise<{ zipName: string, spoilerName: string }> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+    // Ensure base ROMs required on the server by Archipelago generator (e.g. ALTTP)
+    const alttpNeedsRom = players.some(p => p.yaml && (
+      p.yaml.includes('game: A Link to the Past') || 
+      p.yaml.includes('game: "A Link to the Past"') || 
+      p.yaml.includes('game: alttp') || 
+      p.yaml.includes('game: ALTTP')
+    ));
+    if (alttpNeedsRom) {
+      await ensureServerBaseRom('Zelda no Densetsu - Kamigami no Triforce (Japan).sfc');
+    }
+
     const tempSeedsDir = path.join(BACKEND_ROOT, 'temp_seeds', roomCode);
     const inputsDir = path.join(tempSeedsDir, 'inputs');
     const outputsDir = path.join(tempSeedsDir, 'outputs');
@@ -406,7 +629,7 @@ export function generateSeed(
       }
     });
 
-    child.on('close', (code) => {
+    child.on('close', async (code) => {
       if (stdoutLineRemainder.trim()) {
         onLog(stdoutLineRemainder.trim());
       }
@@ -419,9 +642,31 @@ export function generateSeed(
         if (stderrBuffer.trim()) console.error('[Archipelago stderr]:\n', stderrBuffer.trim());
         if (stdoutBuffer.trim()) console.error('[Archipelago stdout]:\n', stdoutBuffer.trim());
         
+        const combined = (stderrBuffer + '\n' + stdoutBuffer);
+
+        // Check if generation failed due to a missing Python module that we can auto-install and retry
+        const moduleMatch = combined.match(/ModuleNotFoundError:\s+No module named\s+['"]([a-zA-Z0-9_]+)['"]/i);
+        if (moduleMatch && !isRetry) {
+          const missingModule = moduleMatch[1];
+          const pipPackage = KNOWN_WORLD_DEPENDENCIES[missingModule] || missingModule.replace(/_/g, '-');
+          onLog(`[Dependencies] Missing Python module detected: "${missingModule}". Attempting auto-installation of "${pipPackage}"...`);
+          console.log(`[Generation] Auto-installing missing dependency "${pipPackage}" for room ${roomCode}...`);
+          const installed = await installPythonPackage(pipPackage);
+          if (installed) {
+            onLog(`[Dependencies] Successfully installed "${pipPackage}". Automatically re-running seed generation...`);
+            try {
+              const retryResult = await generateSeed(roomCode, players, onLog, true);
+              return resolve(retryResult);
+            } catch (retryErr) {
+              return reject(retryErr);
+            }
+          } else {
+            onLog(`[Dependencies] Failed to auto-install "${pipPackage}". Please check server environment.`);
+          }
+        }
+
         // Find clean error message from logs
         let cleanError = '';
-        const combined = (stderrBuffer + '\n' + stdoutBuffer);
         const lines = combined.split('\n');
         for (let i = lines.length - 1; i >= 0; i--) {
           const line = lines[i].trim();
@@ -439,6 +684,9 @@ export function generateSeed(
               break;
             }
           }
+        }
+        if (cleanError) {
+          cleanError = cleanError.replace(/Press enter to close\.?/gi, '').trim();
         }
         return reject(new Error(cleanError || `Generation exited with code ${code}`));
       }

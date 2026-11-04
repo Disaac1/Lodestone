@@ -52,6 +52,36 @@ static func inject_emulator_firmware_config(emulator_dir: String, emu_cfg: Dicti
 		fa_out.close()
 		print("[ArchipelagoConfig] Updated ", cfg_file, " with [", section, "] ", key, " = ", val)
 
+## Configures BizHawk preferred core in config.ini (e.g. SNES -> BSNESv115+)
+static func configure_bizhawk_preferred_core(bizhawk_exe_path: String, system: String, core_name: String) -> void:
+	if bizhawk_exe_path.strip_edges() == "":
+		return
+	var emu_dir: String = ProjectSettings.globalize_path(bizhawk_exe_path).get_base_dir()
+	var cfg_path: String = emu_dir.path_join("config.ini")
+	if not FileAccess.file_exists(cfg_path):
+		return
+	var fa_in: FileAccess = FileAccess.open(cfg_path, FileAccess.READ)
+	if not fa_in:
+		return
+	var content: String = fa_in.get_as_text()
+	fa_in.close()
+
+	var regex = RegEx.new()
+	regex.compile("\"" + system + "\"\\s*:\\s*\"[^\"]*\"")
+	if regex.search(content):
+		content = regex.sub(content, "\"" + system + "\": \"" + core_name + "\"")
+	elif content.contains("\"PreferredCores\": {"):
+		content = content.replace(
+			"\"PreferredCores\": {",
+			"\"PreferredCores\": {\n    \"" + system + "\": \"" + core_name + "\","
+		)
+
+	var fa_w: FileAccess = FileAccess.open(cfg_path, FileAccess.WRITE)
+	if fa_w:
+		fa_w.store_string(content)
+		fa_w.close()
+		print("[ArchipelagoConfig] Configured BizHawk preferred core for " + system + " -> " + core_name)
+
 ## Injects server URL into archipelago.json inside an .ap* patch archive
 static func inject_server_into_ap_patch(patch_path: String, clean_url: String) -> void:
 	if clean_url == "" or patch_path == "" or not FileAccess.file_exists(patch_path):

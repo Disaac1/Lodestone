@@ -82,6 +82,10 @@
             <option value="0">Auto-refresh: Paused</option>
           </select>
 
+          <button class="btn btn-secondary btn-sm" id="btn-download-templates" title="Download all game YAML templates (with custom roms in /custom)">
+            📥 Download Templates
+          </button>
+
           <button class="btn btn-danger btn-sm" id="btn-purge-all" title="Delete all rooms, users, sessions, and temp files">
             🔥 Purge All Data
           </button>
@@ -183,6 +187,13 @@
                     <div class="qbtn-text">
                       <strong>Purge Archipelago Cache</strong>
                       <small>Invalidate parsed games & options schemas</small>
+                    </div>
+                  </button>
+                  <button class="quick-btn" id="qbtn-download-templates">
+                    <span class="qbtn-icon">📥</span>
+                    <div class="qbtn-text">
+                      <strong>Download YAML Templates</strong>
+                      <small>All templates package (custom roms in /custom)</small>
                     </div>
                   </button>
                   <button class="quick-btn" id="qbtn-refresh-all">
@@ -355,6 +366,11 @@
                 <div>
                   <h3>Installed Custom APWorlds</h3>
                   <p class="table-subtitle">Custom packages available to generation orchestrator</p>
+                </div>
+                <div>
+                  <button class="btn btn-secondary btn-sm" id="btn-download-templates-apworlds" title="Download all game YAML templates">
+                    📥 Download YAML Templates
+                  </button>
                 </div>
               </div>
               <table class="data-table">

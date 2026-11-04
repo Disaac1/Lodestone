@@ -1,0 +1,336 @@
+{
+  "game_title": "Pokemon Red and Blue",
+  "default_config": {
+    "game_version": "random",
+    "elite_four_badges_condition": 8,
+    "elite_four_key_items_condition": 0,
+    "badgesanity": false,
+    "tea": false,
+    "split_card_key": "off",
+    "town_map_fly_location": false,
+    "all_elevators_locked": true,
+    "extra_key_items": false,
+    "randomize_wild_pokemon": "vanilla",
+    "randomize_starter_pokemon": "vanilla",
+    "randomize_static_pokemon": "vanilla",
+    "randomize_trainer_parties": "vanilla",
+    "dexsanity": 0,
+    "trainersanity": 0,
+    "exp_modifier": 16,
+    "reusable_tms": true,
+    "better_shops": "off",
+    "blind_trainers": false,
+    "safari_zone_normal_battles": false,
+    "death_link": false
+  },
+  "check_calculator": {
+    "base_count": 168,
+    "base_label": "Kanto Overworld & Gym Badges",
+    "modifiers": [
+      {
+        "key": "trainersanity",
+        "label": "Trainersanity",
+        "values": { "true": 317, "317": 317 }
+      },
+      {
+        "key": "dexsanity",
+        "label": "Dexsanity Species",
+        "multiplier": 1
+      }
+    ]
+  },
+  "required_schema_keys": [
+    "game_version",
+    "elite_four_badges_condition",
+    "badgesanity",
+    "randomize_wild_pokemon"
+  ],
+  "steps": [
+    {
+      "num": 1,
+      "title": "1. Goal & Badges",
+      "description": "Step 1: Choose game cartridge version, required gym badges, and key item requirements",
+      "controls": [
+        {
+          "type": "preset_grid",
+          "columns": 3,
+          "presets": [
+            {
+              "id": "classic_journey",
+              "title": "🧢 Classic Journey",
+              "desc": "Standard 8-badge Indigo Plateau run with vanilla encounters and reusable TMs.",
+              "values": {
+                "game_version": "random",
+                "elite_four_badges_condition": 8,
+                "elite_four_key_items_condition": 0,
+                "badgesanity": false,
+                "tea": false,
+                "split_card_key": "off",
+                "town_map_fly_location": false,
+                "all_elevators_locked": true,
+                "extra_key_items": false,
+                "randomize_wild_pokemon": "vanilla",
+                "randomize_starter_pokemon": "vanilla",
+                "randomize_static_pokemon": "vanilla",
+                "randomize_trainer_parties": "vanilla",
+                "dexsanity": 0,
+                "trainersanity": 0,
+                "exp_modifier": 16,
+                "reusable_tms": true,
+                "better_shops": "off",
+                "blind_trainers": false,
+                "safari_zone_normal_battles": false,
+                "death_link": false
+              }
+            },
+            {
+              "id": "fast_badges",
+              "title": "⚡ Fast Badges Rush",
+              "desc": "Only 4 badges required for E4, 2x EXP multiplier, free Town Map fly destination.",
+              "values": {
+                "game_version": "random",
+                "elite_four_badges_condition": 4,
+                "elite_four_key_items_condition": 0,
+                "badgesanity": false,
+                "tea": true,
+                "split_card_key": "off",
+                "town_map_fly_location": true,
+                "all_elevators_locked": false,
+                "extra_key_items": false,
+                "randomize_wild_pokemon": "match_types",
+                "randomize_starter_pokemon": "match_base_stats",
+                "randomize_static_pokemon": "match_types",
+                "randomize_trainer_parties": "match_types",
+                "dexsanity": 0,
+                "trainersanity": 0,
+                "exp_modifier": 32,
+                "reusable_tms": true,
+                "better_shops": "on",
+                "blind_trainers": false,
+                "safari_zone_normal_battles": true,
+                "death_link": false
+              }
+            },
+            {
+              "id": "full_kanto_sanity",
+              "title": "💀 Full Kanto Sanity",
+              "desc": "Full Badgesanity, Trainersanity, 50 Dexsanity checks, completely randomized Pokemon, and DeathLink.",
+              "values": {
+                "game_version": "random",
+                "elite_four_badges_condition": 8,
+                "elite_four_key_items_condition": 50,
+                "badgesanity": true,
+                "tea": true,
+                "split_card_key": "progressive",
+                "town_map_fly_location": false,
+                "all_elevators_locked": true,
+                "extra_key_items": true,
+                "randomize_wild_pokemon": "completely_random",
+                "randomize_starter_pokemon": "completely_random",
+                "randomize_static_pokemon": "completely_random",
+                "randomize_trainer_parties": "completely_random",
+                "dexsanity": 50,
+                "trainersanity": 317,
+                "exp_modifier": 32,
+                "reusable_tms": true,
+                "better_shops": "add_master_ball",
+                "blind_trainers": false,
+                "safari_zone_normal_battles": true,
+                "death_link": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "game_version",
+          "label": "Game Cartridge Version",
+          "choices": [
+            { "id": "random", "title": "Random Cartridge (Red or Blue)", "name": "Random" },
+            { "id": "red", "title": "Pokemon Red Version", "name": "Red" },
+            { "id": "blue", "title": "Pokemon Blue Version", "name": "Blue" }
+          ]
+        },
+        {
+          "type": "slider",
+          "option_key": "elite_four_badges_condition",
+          "label": "Gym Badges Required for Elite Four",
+          "min": 0,
+          "max": 8,
+          "step": 1,
+          "suffix": " Badges"
+        },
+        {
+          "type": "slider",
+          "option_key": "elite_four_key_items_condition",
+          "label": "Key Items Percentage Required for Elite Four",
+          "min": 0,
+          "max": 100,
+          "step": 10,
+          "suffix": "%"
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "badgesanity",
+          "label": "Badgesanity (Badges are shuffled anywhere into the general multiworld pool)"
+        }
+      ]
+    },
+    {
+      "num": 2,
+      "title": "2. Roadblocks & Key Items",
+      "description": "Step 2: Configure Silph Co card key, drink guards, and extra lock requirements",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "split_card_key",
+          "label": "Silph Co Card Key Split",
+          "choices": [
+            { "id": "off", "title": "Single Key (Vanilla Silph Co Card Key opens all doors)", "name": "Single Key" },
+            { "id": "progressive", "title": "Progressive Keys (Unlock floors 2F through 11F in sequence)", "name": "Progressive Keys" },
+            { "id": "on", "title": "Full Split (10 separate floor key items scattered in pool)", "name": "Full Split" }
+          ]
+        },
+        {
+          "type": "toggle",
+          "option_key": "tea",
+          "label": "Require Tea for Saffron Guards (Guards drink Celadon Tea instead of soda)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "town_map_fly_location",
+          "label": "Town Map Unlocks Random Fly Destination"
+        },
+        {
+          "type": "toggle",
+          "option_key": "all_elevators_locked",
+          "label": "Elevators Require Lift Key (Department store & Silph Co)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "extra_key_items",
+          "label": "Extra Key Items (Rocket Hideout, Mansion, Safari, and Power Plant keys)"
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Encounters & Sanity",
+      "description": "Step 3: Randomize wild encounters, starters, trainers, and Pokédex checks",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "randomize_starter_pokemon",
+          "label": "Starter Pokémon",
+          "choices": [
+            { "id": "vanilla", "title": "Vanilla (Bulbasaur, Charmander, Squirtle)", "name": "Vanilla" },
+            { "id": "match_base_stats", "title": "Match Base Stats (Balanced starter power)", "name": "Match Base Stats" },
+            { "id": "completely_random", "title": "Completely Random", "name": "Completely Random" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "randomize_wild_pokemon",
+          "label": "Wild Pokémon Encounters",
+          "choices": [
+            { "id": "vanilla", "title": "Vanilla (Classic Kanto encounters)", "name": "Vanilla" },
+            { "id": "match_types", "title": "Match Types (Similar elemental typing)", "name": "Match Types" },
+            { "id": "match_base_stats", "title": "Match Base Stats (Similar power tier)", "name": "Match Base Stats" },
+            { "id": "completely_random", "title": "Completely Random (Any Pokémon anywhere)", "name": "Completely Random" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "randomize_trainer_parties",
+          "label": "Trainer Pokémon Parties",
+          "choices": [
+            { "id": "vanilla", "title": "Vanilla (Original trainer teams)", "name": "Vanilla" },
+            { "id": "match_types", "title": "Match Types", "name": "Match Types" },
+            { "id": "completely_random", "title": "Completely Random", "name": "Completely Random" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "slider",
+          "option_key": "dexsanity",
+          "label": "Dexsanity Checks (Catching Pokémon awards multiworld items)",
+          "min": 0,
+          "max": 151,
+          "step": 10,
+          "suffix": " Checks"
+        },
+        {
+          "type": "toggle",
+          "option_key": "trainersanity",
+          "label": "Trainersanity (Defeating each trainer gives a multiworld check)"
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Battle & Quality of Life",
+      "description": "Step 4: Configure EXP multipliers, reusable TMs, and Poké Mart inventories",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "exp_modifier",
+          "label": "EXP Multiplier",
+          "choices": [
+            { "id": 16, "title": "1x Normal EXP Rate", "name": "1x Normal" },
+            { "id": 32, "title": "2x Double EXP Rate", "name": "2x Double" },
+            { "id": 48, "title": "3x Triple EXP Rate", "name": "3x Triple" },
+            { "id": 64, "title": "4x Quadruple EXP Rate", "name": "4x Quadruple" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "better_shops",
+          "label": "Poké Mart Inventories",
+          "choices": [
+            { "id": "off", "title": "Vanilla Marts", "name": "Vanilla Marts" },
+            { "id": "on", "title": "Better Shops (All standard items at every mart)", "name": "Better Shops" },
+            { "id": "add_master_ball", "title": "Add Master Ball (Marts also sell Master Balls)", "name": "Add Master Ball" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "reusable_tms",
+          "label": "Reusable TMs (Technical Machines are not consumed when teaching)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "blind_trainers",
+          "label": "Blind Trainers (Trainers may fail to initiate battle upon sighting)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "safari_zone_normal_battles",
+          "label": "Normal Battles in Safari Zone (Fight and weaken Safari Pokémon)"
+        }
+      ]
+    },
+    {
+      "num": 5,
+      "title": "5. Multiworld & Links",
+      "description": "Step 5: Multiworld interactivity and death link",
+      "controls": [
+        {
+          "type": "toggle",
+          "option_key": "death_link",
+          "label": "DeathLink (Blacking out in battle triggers team deaths in multiworld)"
+        }
+      ]
+    }
+  ]
+}

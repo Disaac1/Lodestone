@@ -4,11 +4,12 @@
     "completion_type": 0,
     "amount_of_stars": 120,
     "stars_to_finish": 58,
-    "first_bowser_star_door_cost": 7,
-    "basement_star_door_cost": 25,
-    "second_floor_star_door_cost": 42,
-    "mips1_cost": 12,
-    "mips2_cost": 42,
+    "star_door_pacing": "standard",
+    "first_bowser_star_door_cost": 12,
+    "basement_star_door_cost": 35,
+    "second_floor_star_door_cost": 60,
+    "mips1_cost": 20,
+    "mips2_cost": 50,
     "area_rando": 0,
     "enable_locked_paintings": false,
     "progressive_keys": true,
@@ -16,10 +17,32 @@
     "buddy_checks": false,
     "exclamation_boxes": false,
     "enable_move_rando": false,
+    "strict_logic_preset": "strict",
     "strict_cap_requirements": true,
     "strict_cannon_requirements": true,
     "strict_move_requirements": true,
     "death_link": false
+  },
+  "check_calculator": {
+    "base_count": 105,
+    "base_label": "Course & Secret Stars",
+    "modifiers": [
+      {
+        "key": "enable_coin_stars",
+        "label": "100-Coin Stars",
+        "values": { "1": 15, "2": 15 }
+      },
+      {
+        "key": "buddy_checks",
+        "label": "Bob-omb Buddies",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "exclamation_boxes",
+        "label": "1Up !-Boxes",
+        "values": { "true": 29 }
+      }
+    ]
   },
   "required_schema_keys": [
     "completion_type",
@@ -27,13 +50,14 @@
     "stars_to_finish",
     "area_rando",
     "progressive_keys",
-    "enable_move_rando"
+    "enable_move_rando",
+    "death_link"
   ],
   "steps": [
     {
       "num": 1,
       "title": "1. Goal & Stars",
-      "description": "Step 1: Choose Victory Goal, Star Pool & Star Door Costs",
+      "description": "Step 1: Victory Condition, Star Counts & Castle Progression Pacing",
       "controls": [
         {
           "type": "card_grid",
@@ -74,13 +98,64 @@
           "suffix": "% of Stars"
         },
         {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "star_door_pacing",
+          "label": "Castle Progression Pacing:",
+          "choices": [
+            {
+              "id": "quick",
+              "title": "⚡ Quick / Casual (Doors: 8, 30, 50; MIPS: 15, 50)",
+              "values": {
+                "first_bowser_star_door_cost": 8,
+                "basement_star_door_cost": 30,
+                "second_floor_star_door_cost": 50,
+                "mips1_cost": 15,
+                "mips2_cost": 50
+              }
+            },
+            {
+              "id": "standard",
+              "title": "⚖️ Standard (Doors: 12, 35, 60; MIPS: 20, 50)",
+              "values": {
+                "first_bowser_star_door_cost": 12,
+                "basement_star_door_cost": 35,
+                "second_floor_star_door_cost": 60,
+                "mips1_cost": 20,
+                "mips2_cost": 50
+              }
+            },
+            {
+              "id": "vanilla",
+              "title": "📜 Vanilla (Doors: 8, 30, 50; MIPS: 15, 50)",
+              "values": {
+                "first_bowser_star_door_cost": 8,
+                "basement_star_door_cost": 30,
+                "second_floor_star_door_cost": 50,
+                "mips1_cost": 15,
+                "mips2_cost": 50
+              }
+            },
+            {
+              "id": "custom",
+              "title": "🛠️ Custom (Configure Individual Door & MIPS Costs Below)"
+            }
+          ]
+        },
+        {
           "type": "slider",
           "option_key": "first_bowser_star_door_cost",
           "label": "First Star Door (Bowser 1):",
           "min": 0,
           "max": 40,
           "step": 1,
-          "suffix": "%"
+          "suffix": "%",
+          "condition": {
+            "option_key": "star_door_pacing",
+            "equals": "custom"
+          }
         },
         {
           "type": "slider",
@@ -89,7 +164,11 @@
           "min": 0,
           "max": 50,
           "step": 1,
-          "suffix": "%"
+          "suffix": "%",
+          "condition": {
+            "option_key": "star_door_pacing",
+            "equals": "custom"
+          }
         },
         {
           "type": "slider",
@@ -98,14 +177,44 @@
           "min": 0,
           "max": 70,
           "step": 1,
-          "suffix": "%"
+          "suffix": "%",
+          "condition": {
+            "option_key": "star_door_pacing",
+            "equals": "custom"
+          }
+        },
+        {
+          "type": "slider",
+          "option_key": "mips1_cost",
+          "label": "MIPS First Catch Cost:",
+          "min": 0,
+          "max": 50,
+          "step": 1,
+          "suffix": " Stars",
+          "condition": {
+            "option_key": "star_door_pacing",
+            "equals": "custom"
+          }
+        },
+        {
+          "type": "slider",
+          "option_key": "mips2_cost",
+          "label": "MIPS Second Catch Cost:",
+          "min": 0,
+          "max": 80,
+          "step": 1,
+          "suffix": " Stars",
+          "condition": {
+            "option_key": "star_door_pacing",
+            "equals": "custom"
+          }
         }
       ]
     },
     {
       "num": 2,
       "title": "2. World & Entrances",
-      "description": "Step 2: Entrance Randomizer & Castle Access",
+      "description": "Step 2: Entrance Randomizer & Castle Access Locks",
       "controls": [
         {
           "type": "card_grid",
@@ -114,17 +223,17 @@
           "items": [
             {
               "id": 0,
-              "name": "🚪 Vanilla Entrances",
+              "title": "🚪 Vanilla Entrances",
               "desc": "Paintings & levels lead to their original destinations."
             },
             {
               "id": 1,
-              "name": "🌀 Course Shuffle",
+              "title": "🌀 Course Shuffle",
               "desc": "Randomize course painting destinations (Secrets stay vanilla)."
             },
             {
               "id": 3,
-              "name": "🌌 Full Entrance Rando",
+              "title": "🌌 Full Painting & Secret Shuffle",
               "desc": "Randomize all course paintings & secret level entrances!"
             }
           ]
@@ -147,7 +256,7 @@
     {
       "num": 3,
       "title": "3. Location Pools",
-      "description": "Step 3: Extra Location Checks & Coin Stars",
+      "description": "Step 3: Extra Location Checks, Buddies & Exclamation Boxes",
       "controls": [
         {
           "type": "dropdown",
@@ -176,38 +285,48 @@
     },
     {
       "num": 4,
-      "title": "4. Mario Moves",
-      "description": "Step 4: Mario Move Randomizer & Logic Requirements",
+      "title": "4. Mario Moves & Logic",
+      "description": "Step 4: Mario Move Randomizer & Logical Strictness",
       "controls": [
         {
           "type": "toggle",
           "option_key": "enable_move_rando",
-          "label": "🏃 Enable Move Randomizer (Mario unlocks Long Jump, Wall Kick, Triple Jump as items!)"
+          "label": "🏃 Enable Move Randomizer (Long Jump, Wall Kick, Triple Jump as items)"
         },
         {
           "type": "separator"
         },
         {
-          "type": "toggle",
-          "option_key": "strict_cap_requirements",
-          "label": "🧢 Strict Cap Requirements (Stars expecting Metal/Wing/Vanish cap logically require caps)"
-        },
-        {
-          "type": "toggle",
-          "option_key": "strict_cannon_requirements",
-          "label": "💣 Strict Cannon Requirements"
-        },
-        {
-          "type": "toggle",
-          "option_key": "strict_move_requirements",
-          "label": "🤸 Strict Move Requirements (If move rando on, stars expecting long jump require it in logic)"
+          "type": "dropdown",
+          "option_key": "strict_logic_preset",
+          "label": "Logical Strictness:",
+          "choices": [
+            {
+              "id": "casual",
+              "title": "🤸 Casual Logic (Soft requirements; tricks allowed in logic)",
+              "values": {
+                "strict_cap_requirements": false,
+                "strict_cannon_requirements": false,
+                "strict_move_requirements": false
+              }
+            },
+            {
+              "id": "strict",
+              "title": "🎯 Strict / Intended Logic (Caps, cannons, and moves strictly required by logic)",
+              "values": {
+                "strict_cap_requirements": true,
+                "strict_cannon_requirements": true,
+                "strict_move_requirements": true
+              }
+            }
+          ]
         }
       ]
     },
     {
       "num": 5,
-      "title": "5. QoL & Extras",
-      "description": "Step 5: Quality of Life & Multiplayer Extras",
+      "title": "5. Multiworld & Links",
+      "description": "Step 5: Multiworld Interactivity & DeathLink",
       "controls": [
         {
           "type": "toggle",

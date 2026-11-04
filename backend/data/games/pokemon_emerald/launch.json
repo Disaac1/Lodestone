@@ -2,7 +2,7 @@
   "game_name": "Pokemon Emerald",
   "short_tag": "Emerald",
   "aliases": [
-    "Pok\u00e9mon Emerald",
+    "Pokémon Emerald",
     "Pokemon Emerald Version",
     "pokemon_emerald"
   ],
@@ -20,11 +20,6 @@
   "rom_aliases": [
     "Pokemon - Emerald Version (USA, Europe).gba"
   ],
-  "rom_download_url": "https://archive.org/download/pkmn_collection/pkmn%20collection/GBA/Pokemon%20-%20Emerald%20Version%20%28USA%2C%20Europe%29.zip",
-  "rom_hashes": {
-    "md5": "f3ae088681bfb26410d2255737503761",
-    "sha1": "f3ae088681bfb26410d2255737503761a298533b"
-  },
   "host_yaml": {
     "pokemon_emerald_settings": {
       "rom_file": "{rom_path}"
@@ -33,7 +28,7 @@
   "auto_connect": true,
   "tracker": {
     "supported": true,
-    "pack_name": "Pok\u00e9mon Emerald AP Tracker",
+    "pack_name": "Pokémon Emerald AP Tracker",
     "package_uid": "ap_emerald",
     "pack_version": "2.1.1",
     "pack_download_url": "https://github.com/seto10987/Archipelago-Emerald-AP-Tracker/archive/refs/tags/v.2.1.1.zip",
@@ -41,5 +36,8 @@
     "source_url": "https://github.com/seto10987/Archipelago-Emerald-AP-Tracker/releases/tag/v.2.1.1",
     "auto_tracking": true
   },
-  "install_instructions": "Tier 1 Full Support: Click Launch to automatically prepare the ROM, update client settings, and auto-start the game connected to the server. If Archipelago Client or BizHawk are missing, click Auto-Install below."
-}
+  "install_instructions": "Tier 1 Full Support: Click Launch to automatically prepare the ROM, update client settings, and auto-start the game connected to the server. If Archipelago Client or BizHawk are missing, click Auto-Install below.",
+  "rom_hashes": {
+    "md5": "605b89b67018abcea91e693a4dd25be3"
+  }
+}

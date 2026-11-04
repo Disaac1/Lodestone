@@ -1,0 +1,393 @@
+{
+  "game_title": "A Link to the Past",
+  "default_config": {
+    "goal": "ganon",
+    "mode": "open",
+    "crystals_needed_for_gt": 7,
+    "crystals_needed_for_ganon": 7,
+    "small_key_shuffle": "original_dungeon",
+    "big_key_shuffle": "original_dungeon",
+    "compass_shuffle": "original_dungeon",
+    "map_shuffle": "original_dungeon",
+    "dungeon_counters": "on",
+    "entrance_shuffle": "none",
+    "item_pool": "normal",
+    "swordless": false,
+    "progressive": "on",
+    "glitches_required": "none",
+    "dark_room_logic": "lamp",
+    "quickswap": true,
+    "menuspeed": "instant",
+    "heartbeep": "half",
+    "death_link": false
+  },
+  "check_calculator": {
+    "base_count": 112,
+    "base_label": "Hyrule & Dark World Chests",
+    "modifiers": [
+      {
+        "key": "small_key_shuffle",
+        "label": "Small Keys",
+        "values": { "any_world": 29, "own_dungeons": 29 }
+      },
+      {
+        "key": "big_key_shuffle",
+        "label": "Big Keys",
+        "values": { "any_world": 11, "own_dungeons": 11 }
+      },
+      {
+        "key": "compass_shuffle",
+        "label": "Dungeon Compasses",
+        "values": { "any_world": 11, "own_dungeons": 11 }
+      },
+      {
+        "key": "map_shuffle",
+        "label": "Dungeon Maps",
+        "values": { "any_world": 11, "own_dungeons": 11 }
+      }
+    ]
+  },
+  "required_schema_keys": [
+    "goal",
+    "mode",
+    "crystals_needed_for_gt",
+    "crystals_needed_for_ganon"
+  ],
+  "steps": [
+    {
+      "num": 1,
+      "title": "1. Goal & World State",
+      "description": "Step 1: Choose win condition, starting world state, and required crystal counts",
+      "controls": [
+        {
+          "type": "preset_grid",
+          "columns": 3,
+          "presets": [
+            {
+              "id": "standard_ganon",
+              "title": "🗡️ Defeat Ganon (Standard)",
+              "desc": "Climb Ganon's Tower with 7 crystals, defeat Agahnim 2, and slay Ganon in the Pyramid.",
+              "values": {
+                "goal": "ganon",
+                "mode": "open",
+                "crystals_needed_for_gt": 7,
+                "crystals_needed_for_ganon": 7,
+                "small_key_shuffle": "original_dungeon",
+                "big_key_shuffle": "original_dungeon",
+                "compass_shuffle": "original_dungeon",
+                "map_shuffle": "original_dungeon",
+                "dungeon_counters": "on",
+                "entrance_shuffle": "none",
+                "item_pool": "normal",
+                "swordless": false,
+                "progressive": "on",
+                "glitches_required": "none",
+                "dark_room_logic": "lamp",
+                "quickswap": true,
+                "menuspeed": "instant",
+                "heartbeep": "half",
+                "death_link": false
+              }
+            },
+            {
+              "id": "fast_crystals",
+              "title": "⚡ Fast Crystals Rush",
+              "desc": "Requires only 4 crystals for GT and Ganon, with instant menu and fast travel.",
+              "values": {
+                "goal": "crystals",
+                "mode": "open",
+                "crystals_needed_for_gt": 4,
+                "crystals_needed_for_ganon": 4,
+                "small_key_shuffle": "original_dungeon",
+                "big_key_shuffle": "original_dungeon",
+                "compass_shuffle": "original_dungeon",
+                "map_shuffle": "original_dungeon",
+                "dungeon_counters": "on",
+                "entrance_shuffle": "none",
+                "item_pool": "normal",
+                "swordless": false,
+                "progressive": "on",
+                "glitches_required": "none",
+                "dark_room_logic": "lamp",
+                "quickswap": true,
+                "menuspeed": "instant",
+                "heartbeep": "half",
+                "death_link": false
+              }
+            },
+            {
+              "id": "inverted_chaos",
+              "title": "🌙 Inverted Multiworld",
+              "desc": "Start in the Dark World, full dungeon item keysanity, and DeathLink enabled.",
+              "values": {
+                "goal": "ganon",
+                "mode": "inverted",
+                "crystals_needed_for_gt": 7,
+                "crystals_needed_for_ganon": 7,
+                "small_key_shuffle": "any_world",
+                "big_key_shuffle": "any_world",
+                "compass_shuffle": "any_world",
+                "map_shuffle": "any_world",
+                "dungeon_counters": "on",
+                "entrance_shuffle": "simple",
+                "item_pool": "normal",
+                "swordless": false,
+                "progressive": "on",
+                "glitches_required": "none",
+                "dark_room_logic": "lamp",
+                "quickswap": true,
+                "menuspeed": "instant",
+                "heartbeep": "half",
+                "death_link": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "card_grid",
+          "option_key": "goal",
+          "columns": 2,
+          "items": [
+            {
+              "id": "ganon",
+              "title": "Defeat Ganon",
+              "desc": "Climb Ganon's Tower, defeat Agahnim 2, and destroy Ganon."
+            },
+            {
+              "id": "crystals",
+              "title": "Fast Crystals Only",
+              "desc": "Defeat Ganon directly once crystal requirement is met (GT optional)."
+            },
+            {
+              "id": "pedestal",
+              "title": "Master Sword Pedestal",
+              "desc": "Collect the 3 Pendants of Virtue and pull the Master Sword."
+            },
+            {
+              "id": "triforce_hunt",
+              "title": "Triforce Pieces Hunt",
+              "desc": "Collect scattered Triforce shards throughout Hyrule to restore balance."
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "mode",
+          "label": "Starting World State",
+          "choices": [
+            { "id": "open", "title": "Open (Start at Link's House or Sanctuary)", "name": "Open" },
+            { "id": "standard", "title": "Standard (Escape the Castle with Zelda)", "name": "Standard" },
+            { "id": "inverted", "title": "Inverted (Start in the Dark World)", "name": "Inverted" }
+          ]
+        },
+        {
+          "type": "slider",
+          "option_key": "crystals_needed_for_gt",
+          "label": "Crystals Required to Open Ganon's Tower",
+          "min": 0,
+          "max": 7,
+          "step": 1,
+          "suffix": " Crystals"
+        },
+        {
+          "type": "slider",
+          "option_key": "crystals_needed_for_ganon",
+          "label": "Crystals Required to Damage Ganon",
+          "min": 0,
+          "max": 7,
+          "step": 1,
+          "suffix": " Crystals"
+        }
+      ]
+    },
+    {
+      "num": 2,
+      "title": "2. World & Entrances",
+      "description": "Step 2: Configure entrance shuffle and dungeon counter displays",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "entrance_shuffle",
+          "label": "Entrance Shuffle",
+          "choices": [
+            { "id": "none", "title": "Vanilla Entrances (Standard map layout)", "name": "Vanilla" },
+            { "id": "simple", "title": "Simple Dungeon Shuffle", "name": "Simple" },
+            { "id": "restricted", "title": "Restricted (Dungeons & connector caves)", "name": "Restricted" },
+            { "id": "full", "title": "Full Entrance Randomizer", "name": "Full" },
+            { "id": "crossed", "title": "Crossed Worlds (Light & Dark world doors crossed)", "name": "Crossed" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "dungeon_counters",
+          "label": "Dungeon Item Counter HUD Display",
+          "choices": [
+            { "id": "on", "title": "Always On (Displays remaining chest & key counts)", "name": "Always On" },
+            { "id": "pickup", "title": "Display on Compass Pickup", "name": "Display on Compass Pickup" },
+            { "id": "off", "title": "Disabled", "name": "Disabled" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Check Pools & Dungeon Items",
+      "description": "Step 3: Small keys, big keys, maps, compasses & item pool density",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "small_key_shuffle",
+          "label": "Small Key Placement",
+          "choices": [
+            { "id": "original_dungeon", "title": "Vanilla (Inside original dungeon)", "name": "Vanilla" },
+            { "id": "own_dungeons", "title": "Own Dungeons (Shuffled within any dungeon)", "name": "Own Dungeons" },
+            { "id": "any_world", "title": "Keysanity (Any location in the multiworld)", "name": "Keysanity" },
+            { "id": "start_with", "title": "Start With All Small Keys", "name": "Start With All Small Keys" },
+            { "id": "universal", "title": "Universal Keys (Shop-purchased & wild)", "name": "Universal Keys" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "big_key_shuffle",
+          "label": "Big Key Placement",
+          "choices": [
+            { "id": "original_dungeon", "title": "Vanilla (Inside original dungeon)", "name": "Vanilla" },
+            { "id": "own_dungeons", "title": "Own Dungeons (Shuffled within any dungeon)", "name": "Own Dungeons" },
+            { "id": "any_world", "title": "Keysanity (Any location in the multiworld)", "name": "Keysanity" },
+            { "id": "start_with", "title": "Start With All Big Keys", "name": "Start With All Big Keys" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "compass_shuffle",
+          "label": "Compass Placement",
+          "choices": [
+            { "id": "original_dungeon", "title": "Vanilla (Inside original dungeon)", "name": "Vanilla" },
+            { "id": "own_dungeons", "title": "Own Dungeons (Any dungeon)", "name": "Own Dungeons" },
+            { "id": "any_world", "title": "Shuffled (Any location in multiworld)", "name": "Shuffled" },
+            { "id": "start_with", "title": "Start With Compasses", "name": "Start With Compasses" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "map_shuffle",
+          "label": "Dungeon Map Placement",
+          "choices": [
+            { "id": "original_dungeon", "title": "Vanilla (Inside original dungeon)", "name": "Vanilla" },
+            { "id": "own_dungeons", "title": "Own Dungeons (Any dungeon)", "name": "Own Dungeons" },
+            { "id": "any_world", "title": "Shuffled (Any location in multiworld)", "name": "Shuffled" },
+            { "id": "start_with", "title": "Start With Dungeon Maps", "name": "Start With Dungeon Maps" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "item_pool",
+          "label": "Item Pool Balance",
+          "choices": [
+            { "id": "normal", "title": "Normal (Standard item counts and heart containers)", "name": "Normal" },
+            { "id": "hard", "title": "Hard (Fewer potions, heart containers, and upgrades)", "name": "Hard" },
+            { "id": "expert", "title": "Expert (Minimal health and recovery items)", "name": "Expert" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "progressive",
+          "label": "Progressive Equipment",
+          "choices": [
+            { "id": "on", "title": "Progressive Swords, Shields, Armor & Gloves", "name": "Progressive" },
+            { "id": "grouped", "title": "Grouped Progression", "name": "Grouped Progression" },
+            { "id": "off", "title": "Non-Progressive (Random tiers anywhere)", "name": "Non-Progressive" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "swordless",
+          "label": "Swordless Mode (Swords removed; play with Hammer, Bow, and Magic)"
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Logic & Quality of Life",
+      "description": "Step 4: Glitch requirements, dark room navigation, menu speed, and sound QoL",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "glitches_required",
+          "label": "Glitches Required in Logic",
+          "choices": [
+            { "id": "none", "title": "No Glitches (Intended routing only)", "name": "No Glitches" },
+            { "id": "minor_glitches", "title": "Minor Glitches (Fake flippers, dash clips)", "name": "Minor Glitches" },
+            { "id": "overworld_glitches", "title": "Overworld Glitches (Boots clips, mirror clips)", "name": "Overworld Glitches" },
+            { "id": "hybrid_major_glitches", "title": "Hybrid Major Glitches", "name": "Hybrid Major Glitches" },
+            { "id": "no_logic", "title": "No Logic (Anything goes)", "name": "No Logic" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "dark_room_logic",
+          "label": "Dark Rooms Navigation Logic",
+          "choices": [
+            { "id": "lamp", "title": "Lamp Strictly Required (Intended)", "name": "Lamp Strictly Required" },
+            { "id": "torches", "title": "Torches Allowed (Fire Rod / Cane of Somaria)", "name": "Torches Allowed" },
+            { "id": "none", "title": "No Lamp / Torch Required (Blind dark rooms in logic)", "name": "No Lamp / Torch Required" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "quickswap",
+          "label": "Instant Item Quickswap (L and R buttons switch inventory items instantly)"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "menuspeed",
+          "label": "Inventory Menu Open Speed",
+          "choices": [
+            { "id": "instant", "title": "Instant Menu Transition (Recommended)", "name": "Instant" },
+            { "id": "fast", "title": "Fast Menu Transition", "name": "Fast" },
+            { "id": "normal", "title": "Normal Speed (Vanilla)", "name": "Normal" },
+            { "id": "half", "title": "Half Speed", "name": "Half" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "heartbeep",
+          "label": "Low Health Beep Sound Rate",
+          "choices": [
+            { "id": "half", "title": "Half Frequency Beep (Comfortable)", "name": "Half Frequency" },
+            { "id": "quarter", "title": "Quarter Frequency Beep", "name": "Quarter Frequency" },
+            { "id": "off", "title": "Mute Low Health Beep (Silent)", "name": "Mute Beep" },
+            { "id": "normal", "title": "Vanilla Low Health Beep", "name": "Vanilla" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 5,
+      "title": "5. Multiworld & Links",
+      "description": "Step 5: Multiworld interactivity and death link",
+      "controls": [
+        {
+          "type": "toggle",
+          "option_key": "death_link",
+          "label": "DeathLink (Share Link's deaths with all connected players)"
+        }
+      ]
+    }
+  ]
+}

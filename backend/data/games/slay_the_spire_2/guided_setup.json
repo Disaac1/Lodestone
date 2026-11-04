@@ -12,14 +12,45 @@
     "num_chars_goal": 0,
     "lock_characters": "locked_random",
     "unlocked_character": "ironclad",
+    "progressive_starter_card": false,
+    "progressive_starter_relic": false,
     "campfire_sanity": false,
     "gold_sanity": false,
     "potion_sanity": false,
     "shop_sanity": false,
     "neow_sanity": false,
-    "progressive_starter_card": false,
-    "progressive_starter_relic": false,
     "death_link": false
+  },
+  "check_calculator": {
+    "base_count": 15,
+    "base_label": "Act & Boss Clears",
+    "modifiers": [
+      {
+        "key": "campfire_sanity",
+        "label": "Campfire Sanity",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "shop_sanity",
+        "label": "Shop Sanity",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "gold_sanity",
+        "label": "Gold Sanity",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "potion_sanity",
+        "label": "Potion Sanity",
+        "values": { "true": 12 }
+      },
+      {
+        "key": "neow_sanity",
+        "label": "Neow Sanity",
+        "values": { "true": 3 }
+      }
+    ]
   },
   "required_schema_keys": [
     "characters",
@@ -32,28 +63,19 @@
     {
       "num": 1,
       "title": "1. Character Roster & Goals",
-      "description": "Step 1: Choose characters to play (Ironclad, Silent, Defect, Regent, Necrobinder)",
+      "description": "Step 1: Choose character roster, heroes played, and victory condition",
       "controls": [
         {
-          "type": "card_grid",
-          "option_key": "pick_num_characters",
-          "columns": 3,
+          "type": "multi_select",
+          "option_key": "characters",
+          "label": "Character Pool (Select heroes allowed in your climb):",
+          "columns": 5,
           "items": [
-            {
-              "id": 1,
-              "title": "\u26a1 Solo Climber (1 Hero)",
-              "desc": "Focus entirely on one chosen hero's deck."
-            },
-            {
-              "id": 2,
-              "title": "\u2694\ufe0f Duo Climb (2 Heroes)",
-              "desc": "Standard multiworld experience with 2 rotating classes."
-            },
-            {
-              "id": 5,
-              "title": "\ud83d\udc51 All Five Heroes",
-              "desc": "Climb the Spire with all five classes."
-            }
+            { "id": "ironclad", "title": "🛡️ Ironclad" },
+            { "id": "silent", "title": "🗡️ Silent" },
+            { "id": "defect", "title": "⚡ Defect" },
+            { "id": "regent", "title": "👑 Regent" },
+            { "id": "necrobinder", "title": "💀 Necrobinder" }
           ]
         },
         {
@@ -84,15 +106,15 @@
           "choices": [
             {
               "id": "unlocked",
-              "title": "All Unlocked (Play immediately)"
+              "title": "🔓 All Unlocked (Play all picked heroes immediately)"
             },
             {
               "id": "locked_random",
-              "title": "Locked Random (Find unlocks in multiworld)"
+              "title": "🎲 Locked Random (Unlock heroes via multiworld items)"
             },
             {
               "id": "locked_fixed",
-              "title": "Locked Fixed (Start with selected hero)"
+              "title": "🔒 Locked Fixed (Start with 1 chosen hero below)"
             }
           ]
         },
@@ -100,97 +122,123 @@
           "type": "dropdown",
           "option_key": "unlocked_character",
           "label": "Starting Unlocked Character (if Locked Fixed):",
+          "condition": {
+            "option_key": "lock_characters",
+            "equals": "locked_fixed"
+          },
           "choices": [
-            {
-              "id": "ironclad",
-              "title": "Ironclad"
-            },
-            {
-              "id": "silent",
-              "title": "Silent"
-            },
-            {
-              "id": "defect",
-              "title": "Defect"
-            },
-            {
-              "id": "regent",
-              "title": "Regent"
-            },
-            {
-              "id": "necrobinder",
-              "title": "Necrobinder"
-            }
+            { "id": "ironclad", "title": "Ironclad" },
+            { "id": "silent", "title": "Silent" },
+            { "id": "defect", "title": "Defect" },
+            { "id": "regent", "title": "Regent" },
+            { "id": "necrobinder", "title": "Necrobinder" }
           ]
         }
       ]
     },
     {
       "num": 2,
-      "title": "2. Starter Items & Ancients",
-      "description": "Step 2: Progressive starter cards, relics, and Neow blessings",
+      "title": "2. Starter Gear & Difficulty",
+      "description": "Step 2: Progressive starter equipment and loadouts",
       "controls": [
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "progressive_starter_card",
-          "label": "Progressive Starter Card",
-          "desc": "Start without your signature starter card and unlock it progressively through multiworld items."
+          "label": "🃏 Progressive Starter Card (Unlock signature starter card progressively via multiworld)"
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "progressive_starter_relic",
-          "label": "Progressive Starter Relic",
-          "desc": "Start without your character's starter relic and find it in the multiworld."
-        },
-        {
-          "type": "checkbox",
-          "option_key": "neow_sanity",
-          "label": "Neow Sanity",
-          "desc": "Turn Neow's blessing choices at the start of each run into Archipelago check locations."
+          "label": "🏺 Progressive Starter Relic (Unlock class starter relic via multiworld)"
         }
       ]
     },
     {
       "num": 3,
-      "title": "3. Sanity & Check Pool",
-      "description": "Step 3: Shuffle campsites, gold, potions, and shop slots into multiworld",
+      "title": "3. Sanity Pool",
+      "description": "Step 3: Check Density Presets & Individual Sanity Overrides",
       "controls": [
         {
-          "type": "checkbox",
+          "type": "preset_grid",
+          "columns": 3,
+          "presets": [
+            {
+              "id": "minimal",
+              "title": "🏰 Bosses & Campfires",
+              "desc": "Minimal check density. Fast-paced run focused on boss drops and campfires.",
+              "values": {
+                "campfire_sanity": true,
+                "gold_sanity": false,
+                "potion_sanity": false,
+                "shop_sanity": false,
+                "neow_sanity": false
+              }
+            },
+            {
+              "id": "standard",
+              "title": "⚖️ Standard Spire",
+              "desc": "Balanced multiworld with campfires, gold drops, and Neow blessings.",
+              "values": {
+                "campfire_sanity": true,
+                "gold_sanity": true,
+                "potion_sanity": false,
+                "shop_sanity": false,
+                "neow_sanity": true
+              }
+            },
+            {
+              "id": "full",
+              "title": "🌌 Full Sanity",
+              "desc": "Everything is randomized: shops, potions, gold, Neow, and campfires.",
+              "values": {
+                "campfire_sanity": true,
+                "gold_sanity": true,
+                "potion_sanity": true,
+                "shop_sanity": true,
+                "neow_sanity": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
           "option_key": "campfire_sanity",
-          "label": "Campfire Sanity",
-          "desc": "Shuffle Rest and Smith campsite capabilities per Act into the multiworld."
+          "label": "🔥 Campfire Sanity (Shuffle Rest and Smith abilities into multiworld)"
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "gold_sanity",
-          "label": "Gold Sanity",
-          "desc": "Adds gold reward check locations to the multiworld pool."
+          "label": "💰 Gold Sanity (Gold rewards drop multiworld items)"
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "potion_sanity",
-          "label": "Potion Sanity",
-          "desc": "Adds potion reward drops to the multiworld check pool."
+          "label": "🧪 Potion Sanity (Potion drops randomized)"
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "shop_sanity",
-          "label": "Shop Sanity",
-          "desc": "Shuffle card, relic, and potion shop slots into the item pool."
+          "label": "🛒 Shop Sanity (Relics and cards in merchant shops are multiworld checks)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "neow_sanity",
+          "label": "🐋 Neow Sanity (Neow blessing room checks)"
         }
       ]
     },
     {
       "num": 4,
-      "title": "4. Death Link & Co-Op",
-      "description": "Step 4: Configure multiplayer Death Link",
+      "title": "4. Multiworld & Links",
+      "description": "Step 4: Multiplayer Notifications & DeathLink",
       "controls": [
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "death_link",
-          "label": "Enable Death Link",
-          "desc": "When you perish on a floor, all linked players take damage or perish."
+          "label": "💀 DeathLink (Dying sends death to your multiworld partners)"
         }
       ]
     }

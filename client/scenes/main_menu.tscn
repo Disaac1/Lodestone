@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://d3ya2bo2v684r" path="res://scripts/ui/main_menu.gd" id="1_xxxx"]
 [ext_resource type="PackedScene" path="res://scenes/modals/rom_catalog_modal.tscn" id="3_rom_modal"]
 [ext_resource type="PackedScene" path="res://scenes/modals/update_overlay.tscn" id="4_update_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/modals/tools_manager_modal.tscn" id="5_tools_modal"]
 
 [node name="MainMenu" type="Control" unique_id=646118204]
 layout_mode = 3
@@ -150,7 +151,7 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
-text = "📋 View Catalog"
+text = "🎮 Manage ROMs & Games"
 
 [node name="RomFolderBtn" type="Button" parent="CenterContainer/HBox/CardPanel/Margin/VBox/Form/RomCatalogBox/RomActionsRow" unique_id=706027175]
 unique_name_in_owner = true
@@ -159,6 +160,13 @@ layout_mode = 2
 tooltip_text = "Open AppData folder"
 theme_override_font_sizes/font_size = 11
 text = "📂"
+
+[node name="ToolsBtn" type="Button" parent="CenterContainer/HBox/CardPanel/Margin/VBox/Form/RomCatalogBox" unique_id=981248192]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "🔧 Manage Tools & Dependencies"
 
 [node name="Separator2" type="HSeparator" parent="CenterContainer/HBox/CardPanel/Margin/VBox" unique_id=1305215139]
 layout_mode = 2
@@ -234,6 +242,11 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="RomFileDialog" type="FileDialog" parent="." unique_id=767679033]
 unique_name_in_owner = true
@@ -249,3 +262,18 @@ filters = PackedStringArray("*.json ; JSON Files")
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ToolsManagerModal" parent="." unique_id=1401249641 instance=ExtResource("5_tools_modal")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

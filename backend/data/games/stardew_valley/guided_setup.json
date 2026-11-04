@@ -1,0 +1,422 @@
+{
+  "game_title": "Stardew Valley",
+  "default_config": {
+    "goal": "community_center",
+    "bundle_randomization": "remixed",
+    "bundle_price": "normal",
+    "farm_type": "standard",
+    "backpack_progression": "early_progressive",
+    "tool_progression": "progressive",
+    "elevator_progression": "progressive_from_previous_floor",
+    "skill_progression": "vanilla",
+    "building_progression": "vanilla",
+    "fishsanity": "none",
+    "museumsanity": "milestones",
+    "monstersanity": "none",
+    "cropsanity": "disabled",
+    "festival_locations": "easy",
+    "season_randomization": "disabled",
+    "starting_money": 5000,
+    "profit_margin": 100,
+    "experience_multiplier": 1,
+    "quick_start": true,
+    "death_link": false,
+    "gifting": true
+  },
+  "check_calculator": {
+    "base_count": 30,
+    "base_label": "Community Center Bundles",
+    "modifiers": [
+      {
+        "key": "fishsanity",
+        "label": "Fishsanity",
+        "values": { "special": 20, "legendaries": 5, "all": 70 }
+      },
+      {
+        "key": "museumsanity",
+        "label": "Museumsanity",
+        "values": { "milestones": 10, "all": 95 }
+      },
+      {
+        "key": "monstersanity",
+        "label": "Monstersanity",
+        "values": { "one_per_category": 12, "one_per_monster": 36 }
+      },
+      {
+        "key": "cropsanity",
+        "label": "Cropsanity",
+        "values": { "enabled": 42 }
+      },
+      {
+        "key": "festival_locations",
+        "label": "Festival Activities",
+        "values": { "easy": 16, "hard": 28 }
+      }
+    ]
+  },
+  "required_schema_keys": [
+    "goal",
+    "farm_type",
+    "bundle_randomization",
+    "backpack_progression",
+    "tool_progression"
+  ],
+  "steps": [
+    {
+      "num": 1,
+      "title": "1. Goal & Farm Setup",
+      "description": "Step 1: Choose win condition, bundle rules, and farm map",
+      "controls": [
+        {
+          "type": "preset_grid",
+          "columns": 3,
+          "presets": [
+            {
+              "id": "casual_farmer",
+              "title": "🌱 Casual Farmer",
+              "desc": "Standard Community Center run with generous starting funds, remixed bundles, and early backpack.",
+              "values": {
+                "goal": "community_center",
+                "bundle_randomization": "remixed",
+                "bundle_price": "cheap",
+                "farm_type": "standard",
+                "backpack_progression": "early_progressive",
+                "tool_progression": "progressive",
+                "elevator_progression": "progressive_from_previous_floor",
+                "skill_progression": "vanilla",
+                "building_progression": "vanilla",
+                "fishsanity": "none",
+                "museumsanity": "milestones",
+                "monstersanity": "none",
+                "cropsanity": "disabled",
+                "festival_locations": "easy",
+                "season_randomization": "disabled",
+                "starting_money": 5000,
+                "profit_margin": 100,
+                "experience_multiplier": 2,
+                "quick_start": true,
+                "death_link": false,
+                "gifting": true
+              }
+            },
+            {
+              "id": "standard_valley",
+              "title": "🌾 Standard Valley (Recommended)",
+              "desc": "Balanced multiworld with Museumsanity milestones, monster category checks, and quick start.",
+              "values": {
+                "goal": "community_center",
+                "bundle_randomization": "remixed",
+                "bundle_price": "normal",
+                "farm_type": "standard",
+                "backpack_progression": "early_progressive",
+                "tool_progression": "progressive",
+                "elevator_progression": "progressive_from_previous_floor",
+                "skill_progression": "vanilla",
+                "building_progression": "vanilla",
+                "fishsanity": "special",
+                "museumsanity": "milestones",
+                "monstersanity": "one_per_category",
+                "cropsanity": "disabled",
+                "festival_locations": "easy",
+                "season_randomization": "disabled",
+                "starting_money": 2000,
+                "profit_margin": 100,
+                "experience_multiplier": 1,
+                "quick_start": true,
+                "death_link": false,
+                "gifting": true
+              }
+            },
+            {
+              "id": "full_sanity",
+              "title": "💀 Full Valley Sanity",
+              "desc": "Perfection goal with all fish, museum donations, cropsanity, randomized seasons, and DeathLink.",
+              "values": {
+                "goal": "perfection",
+                "bundle_randomization": "shuffled",
+                "bundle_price": "expensive",
+                "farm_type": "four_corners",
+                "backpack_progression": "progressive",
+                "tool_progression": "progressive",
+                "elevator_progression": "progressive",
+                "skill_progression": "progressive",
+                "building_progression": "progressive",
+                "fishsanity": "all",
+                "museumsanity": "all",
+                "monstersanity": "one_per_monster",
+                "cropsanity": "enabled",
+                "festival_locations": "hard",
+                "season_randomization": "randomized",
+                "starting_money": 500,
+                "profit_margin": 50,
+                "experience_multiplier": 1,
+                "quick_start": false,
+                "death_link": true,
+                "gifting": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "card_grid",
+          "option_key": "goal",
+          "columns": 3,
+          "items": [
+            {
+              "id": "community_center",
+              "title": "Community Center",
+              "desc": "Complete all rooms and restore the Pelican Town Community Center."
+            },
+            {
+              "id": "grandpa_evaluation",
+              "title": "Grandpa's Evaluation",
+              "desc": "Light all 4 candles at Grandpa's Shrine by year 3."
+            },
+            {
+              "id": "bottom_of_the_mines",
+              "title": "Bottom of the Mines",
+              "desc": "Reach level 120 of the local mountain mines."
+            },
+            {
+              "id": "master_angler",
+              "title": "Master Angler",
+              "desc": "Catch every species of fish in Stardew Valley."
+            },
+            {
+              "id": "perfection",
+              "title": "100% Perfection",
+              "desc": "Achieve 100% farm and valley completion on Qi's Tracker."
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "bundle_randomization",
+          "label": "Community Center Bundle Pool",
+          "choices": [
+            { "id": "remixed", "title": "Remixed (Balanced mix of standard and new bundles)", "name": "Remixed" },
+            { "id": "vanilla", "title": "Vanilla (Original game bundles)", "name": "Vanilla" },
+            { "id": "shuffled", "title": "Shuffled (Completely random items)", "name": "Shuffled" },
+            { "id": "thematic", "title": "Thematic (Random items matching room themes)", "name": "Thematic" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "bundle_price",
+          "label": "Bundle Required Item Counts",
+          "choices": [
+            { "id": "cheap", "title": "Cheap (1 item fewer per bundle)", "name": "Cheap" },
+            { "id": "normal", "title": "Normal (Standard bundle item counts)", "name": "Normal" },
+            { "id": "expensive", "title": "Expensive (1 extra item per bundle)", "name": "Expensive" },
+            { "id": "very_cheap", "title": "Very Cheap (2 items fewer)", "name": "Very Cheap" },
+            { "id": "minimum", "title": "Minimum (1 single item per bundle)", "name": "Minimum" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "farm_type",
+          "label": "Farm Layout",
+          "choices": [
+            { "id": "standard", "title": "Standard Farm", "name": "Standard" },
+            { "id": "riverland", "title": "Riverland Farm", "name": "Riverland" },
+            { "id": "forest", "title": "Forest Farm", "name": "Forest" },
+            { "id": "hill_top", "title": "Hill-Top Farm", "name": "Hill-Top" },
+            { "id": "wilderness", "title": "Wilderness Farm", "name": "Wilderness" },
+            { "id": "four_corners", "title": "Four Corners Farm", "name": "Four Corners" },
+            { "id": "beach", "title": "Beach Farm", "name": "Beach" },
+            { "id": "meadowlands", "title": "Meadowlands Farm (1.6)", "name": "Meadowlands" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 2,
+      "title": "2. Progression & Upgrades",
+      "description": "Step 2: Backpack, tool, mine elevator, and skill unlocks",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "backpack_progression",
+          "label": "Backpack Size Progression",
+          "choices": [
+            { "id": "early_progressive", "title": "Early Progressive (Guaranteed early multiworld backpack)", "name": "Early Progressive" },
+            { "id": "progressive", "title": "Progressive (Backpacks scattered anywhere)", "name": "Progressive" },
+            { "id": "vanilla", "title": "Vanilla (Purchased at Pierre's Store)", "name": "Vanilla" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "tool_progression",
+          "label": "Tool Upgrade Progression",
+          "choices": [
+            { "id": "progressive", "title": "Progressive (Tool upgrades sent as multiworld items)", "name": "Progressive" },
+            { "id": "progressive_cheap", "title": "Progressive (Discounted blacksmith cost)", "name": "Progressive Cheap" },
+            { "id": "vanilla", "title": "Vanilla (Clint upgrades with metal bars)", "name": "Vanilla" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "elevator_progression",
+          "label": "Mine Elevator Progression",
+          "choices": [
+            { "id": "progressive_from_previous_floor", "title": "Floor-by-Floor (Unlock elevator but must reach next floor)", "name": "Floor-by-Floor" },
+            { "id": "progressive", "title": "Progressive Elevators (Direct floor warp unlocked)", "name": "Progressive" },
+            { "id": "vanilla", "title": "Vanilla (Reaching floor unlocks elevator)", "name": "Vanilla" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "skill_progression",
+          "label": "Skill Level Progression",
+          "choices": [
+            { "id": "vanilla", "title": "Vanilla (Earn skill XP normally)", "name": "Vanilla" },
+            { "id": "progressive", "title": "Progressive Skills (Skills unlock via multiworld)", "name": "Progressive" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "building_progression",
+          "label": "Farm Building Progression",
+          "choices": [
+            { "id": "vanilla", "title": "Vanilla (Robin builds once materials provided)", "name": "Vanilla" },
+            { "id": "progressive", "title": "Progressive Buildings (Blueprints unlocked via multiworld)", "name": "Progressive" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 3,
+      "title": "3. Check Pools (Sanity)",
+      "description": "Step 3: Choose which valley activities award multiworld checks",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "fishsanity",
+          "label": "Fishsanity (Catching Fish)",
+          "choices": [
+            { "id": "none", "title": "None (No fishing checks)", "name": "None" },
+            { "id": "special", "title": "Special (Curated selection of prominent fish)", "name": "Special" },
+            { "id": "legendaries", "title": "Legendaries Only (5 Legendary Fish)", "name": "Legendaries" },
+            { "id": "all", "title": "All Fish (Every fish in the game gives a check)", "name": "All Fish" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "museumsanity",
+          "label": "Museumsanity (Gunther's Museum Donations)",
+          "choices": [
+            { "id": "milestones", "title": "Milestones (Vanilla donation milestones reward items)", "name": "Milestones" },
+            { "id": "none", "title": "None (No museum checks)", "name": "None" },
+            { "id": "all", "title": "All (Every single donated mineral & artifact is a check)", "name": "All" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "monstersanity",
+          "label": "Monstersanity (Adventurer's Guild Slaying)",
+          "choices": [
+            { "id": "none", "title": "None", "name": "None" },
+            { "id": "one_per_category", "title": "One Check Per Monster Category", "name": "One per Category" },
+            { "id": "one_per_monster", "title": "One Check Per Unique Monster Type", "name": "One per Monster" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "cropsanity",
+          "label": "Cropsanity (Growing and Harvesting Crops)",
+          "choices": [
+            { "id": "disabled", "title": "Disabled (Seeds purchased normally)", "name": "Disabled" },
+            { "id": "enabled", "title": "Enabled (Seeds and crop harvests are checks)", "name": "Enabled" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "festival_locations",
+          "label": "Festival Activity Checks",
+          "choices": [
+            { "id": "easy", "title": "Easy (Attending festivals rewards checks)", "name": "Easy" },
+            { "id": "hard", "title": "Hard (Requires high scores and victories in festival events)", "name": "Hard" },
+            { "id": "disabled", "title": "Disabled", "name": "Disabled" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Economy, Seasons & QoL",
+      "description": "Step 4: Configure starting money, crop profit margin, and seasonal pacing",
+      "controls": [
+        {
+          "type": "slider",
+          "option_key": "starting_money",
+          "label": "Starting Gold",
+          "min": 500,
+          "max": 50000,
+          "step": 2500,
+          "suffix": "g"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "profit_margin",
+          "label": "Profit Margin (Crop & Goods Sell Value)",
+          "choices": [
+            { "id": 100, "title": "100% (Normal Sell Value)", "name": "Normal (100%)" },
+            { "id": 50, "title": "50% (Half Profits)", "name": "Half (50%)" },
+            { "id": 25, "title": "25% (Quarter Profits - Hardcore)", "name": "Quarter (25%)" },
+            { "id": 200, "title": "200% (Double Profits)", "name": "Double (200%)" }
+          ]
+        },
+        {
+          "type": "slider",
+          "option_key": "experience_multiplier",
+          "label": "Skill Experience Multiplier",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "suffix": "x"
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "quick_start",
+          "label": "Quick Start Package (Grants starter seeds and watering tools)"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "season_randomization",
+          "label": "Season Randomization",
+          "choices": [
+            { "id": "disabled", "title": "Disabled (Start in Spring; standard 4 seasons)", "name": "Disabled" },
+            { "id": "randomized", "title": "Randomized (Start in random season; unlock remaining 3)", "name": "Randomized" },
+            { "id": "progressive", "title": "Progressive (Seasons unlock sequentially)", "name": "Progressive" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 5,
+      "title": "5. Multiworld & Gifting",
+      "description": "Step 5: Configure DeathLink and team item gifting",
+      "controls": [
+        {
+          "type": "toggle",
+          "option_key": "death_link",
+          "label": "DeathLink (Passing out in mines or caves sends deaths to the multiworld)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "gifting",
+          "label": "Enable Cross-World Item Gifting (Send and receive gifts with other games)"
+        }
+      ]
+    }
+  ]
+}

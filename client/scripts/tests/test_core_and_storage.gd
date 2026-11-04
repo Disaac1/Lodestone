@@ -191,6 +191,22 @@ func _run_suite() -> void:
 	_assert_true(OS.low_processor_usage_mode_sleep_usec == 6900, "OS.low_processor_usage_mode_sleep_usec must be 6900")
 	print("  -> Passed: Engine power efficiency and sleep throttling verified.")
 
+	# -------------------------------------------------------------
+	# 8. Guardrails Against Cross-Game Fuzzy Matching & Sibling Pollution
+	# -------------------------------------------------------------
+	print("\n[Test 8] Verifying cross-game fuzzy matching guardrails...")
+	var bw_dir = launcher.get_game_dir("test_sibling_isolation_b")
+	var bw_rom = bw_dir.path_join("Pokemon - Black Version (USA, Europe) (NDSi Enhanced).nds")
+	var fa_bw = FileAccess.open(bw_rom, FileAccess.WRITE)
+	fa_bw.store_string("mock nds rom content")
+	fa_bw.close()
+
+	var matched = launcher.find_existing_base_rom("Test Game Alpha (USA).gba")
+	_assert_true(matched == "", "Fuzzy search must NOT match sibling game Pokemon Black for another game")
+	DirAccess.remove_absolute(bw_rom)
+	DirAccess.remove_absolute(bw_dir)
+	print("  -> Passed: Cross-game fuzzy matching guardrails verified.")
+
 	_finish()
 
 func _finish() -> void:

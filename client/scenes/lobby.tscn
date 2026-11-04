@@ -48,7 +48,7 @@ theme_override_constants/separation = 14
 
 [node name="Header" type="HBoxContainer" parent="Margin/VBox" unique_id=1219038410]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="RoomLabel" type="Label" parent="Margin/VBox/Header" unique_id=1686010140]
 unique_name_in_owner = true
@@ -110,10 +110,13 @@ text = "●"
 
 [node name="ServerPortValue" type="Label" parent="Margin/VBox/Header/ConnectionBadge/Margin/HBox" unique_id=1703042829]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.88, 0.95, 1)
 theme_override_font_sizes/font_size = 13
 text = "localhost:38000"
+text_overrun_behavior = 3
+clip_text = true
 
 [node name="CopyServerAddressBtn" type="Button" parent="Margin/VBox/Header/ConnectionBadge/Margin/HBox" unique_id=490282300]
 unique_name_in_owner = true

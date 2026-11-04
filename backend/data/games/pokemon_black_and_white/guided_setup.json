@@ -1,11 +1,37 @@
 {
   "game_title": "Pokémon Black and White",
   "default_config": {
+    "version": 2,
     "goal": "ghetsis",
     "shuffle_badges": "shuffle",
     "shuffle_tm_hm": "shuffle",
+    "randomize_wild_pokemon": [],
+    "randomize_trainer_pokemon": [],
+    "randomize_starter_pokemon": [],
+    "randomize_static_pokemon": [],
+    "randomize_types": [],
+    "randomize_abilities": [],
+    "adjust_levels": [],
     "exp_multiplier": 1,
-    "reusable_tms": "on"
+    "reusable_tms": "on",
+    "dexsanity": 0,
+    "death_link": false
+  },
+  "check_calculator": {
+    "base_count": 8,
+    "base_label": "Gym Leader Badges",
+    "modifiers": [
+      {
+        "key": "shuffle_tm_hm",
+        "label": "TM & HM Items",
+        "values": { "shuffle": 92, "hm_with_badge": 6 }
+      },
+      {
+        "key": "dexsanity",
+        "label": "Dexsanity Species",
+        "values": { "20": 20, "50": 50, "156": 156 }
+      }
+    ]
   },
   "required_schema_keys": [
     "goal",
@@ -17,82 +43,218 @@
   "steps": [
     {
       "num": 1,
-      "title": "1. Goal & Structure",
-      "description": "Step 1: Choose your primary goal and gym badge gates",
+      "title": "1. Goal & Version",
+      "description": "Step 1: Choose game version and campaign victory condition",
       "controls": [
         {
           "type": "card_grid",
           "option_key": "goal",
-          "columns": 2,
+          "columns": 3,
           "items": [
             {
               "id": "ghetsis",
-              "title": "Defeat N & Ghetsis",
-              "desc": "Conquer N's Castle and defeat Ghetsis to clear the main story."
+              "val": 0,
+              "title": "👑 Defeat Ghetsis",
+              "desc": "Conquer N's Castle and defeat Ghetsis to clear the main storyline."
             },
             {
               "id": "champion",
-              "title": "Defeat Alder",
-              "desc": "Post-game goal: defeat Champion Alder in the Pokémon League."
+              "val": 1,
+              "title": "🏆 Champion Alder",
+              "desc": "Post-game goal: defeat Champion Alder at the Pokémon League."
+            },
+            {
+              "id": "cynthia",
+              "val": 2,
+              "title": "🏖️ Defeat Cynthia",
+              "desc": "Defeat Sinnoh Champion Cynthia in her Undella Town villa."
+            },
+            {
+              "id": "cobalion",
+              "val": 3,
+              "title": "⚔️ Swords of Justice",
+              "desc": "Track down and catch the legendary Cobalion in Mistralton Cave."
+            },
+            {
+              "id": "seven_sages_hunt",
+              "val": 8,
+              "title": "🧙 Seven Sages Hunt",
+              "desc": "Find and apprehend all Seven Sages scattered across Unova."
+            },
+            {
+              "id": "pokemon_master",
+              "val": 10,
+              "title": "🌟 Pokémon Master",
+              "desc": "The ultimate challenge: clear all major endgame boss battles."
             }
           ]
         },
         {
-          "type": "dropdown",
-          "option_key": "shuffle_badges",
-          "label": "Badge Placement:",
-          "choices": [
-            { "id": "vanilla", "title": "Vanilla Badge Locations" },
-            { "id": "shuffle", "title": "Shuffle Badge Locations" },
-            { "id": "anything", "title": "Any Badge Anywhere" }
-          ]
+          "type": "separator"
         },
         {
           "type": "dropdown",
-          "option_key": "shuffle_tm_hm",
-          "label": "TM/HM Placement:",
+          "option_key": "version",
+          "label": "Game Version:",
           "choices": [
-            { "id": "shuffle", "title": "Shuffle TMs and HMs" },
-            { "id": "hm_with_badge", "title": "HMs With Badges" },
-            { "id": "anything", "title": "Any TM/HM Anywhere" }
+            { "id": 2, "title": "Dynamic (Matches detected ROM or chosen edition)" },
+            { "id": 0, "title": "Black Version" },
+            { "id": 1, "title": "White Version" }
           ]
         }
       ]
     },
     {
       "num": 2,
-      "title": "2. Encounters & Pokémon",
-      "description": "Step 2: Configure encounter randomization in the full options editor",
+      "title": "2. Encounters & Starters",
+      "description": "Step 2: Randomize Wild Pokémon, Starters, Trainers, and Static Legendaries",
       "controls": [
         {
-          "type": "separator"
+          "type": "dropdown",
+          "option_key": "randomize_wild_pokemon",
+          "label": "Wild Pokémon Encounters:",
+          "choices": [
+            { "id": "vanilla", "val": [], "title": "Vanilla (Standard Unova wild encounters)" },
+            { "id": "match_base_stats", "val": ["Randomize", "Match base stats"], "title": "Match Base Stats (Balanced random spawns)" },
+            { "id": "match_types", "val": ["Randomize", "Match types"], "title": "Match Types (Wild Pokémon retain area typing)" },
+            { "id": "completely_random", "val": ["Randomize"], "title": "Completely Random (Any Pokémon can appear anywhere)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "randomize_trainer_pokemon",
+          "label": "Trainer Pokémon Parties:",
+          "choices": [
+            { "id": "vanilla", "val": [], "title": "Vanilla (Original trainer teams)" },
+            { "id": "match_base_stats", "val": ["Randomize", "Match base stats"], "title": "Match Base Stats (Trainers have balanced teams)" },
+            { "id": "completely_random", "val": ["Randomize"], "title": "Completely Random (Trainers carry any Pokémon)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "randomize_starter_pokemon",
+          "label": "Starter Pokémon:",
+          "choices": [
+            { "id": "vanilla", "val": [], "title": "Vanilla (Snivy, Tepig, Oshawott)" },
+            { "id": "unova_starters", "val": ["Randomize", "Unova starters"], "title": "Randomize (Unova Starters shuffled)" },
+            { "id": "all_starters", "val": ["Randomize", "All starters"], "title": "All Starters (Starters from any Pokémon generation)" },
+            { "id": "completely_random", "val": ["Randomize", "Any base"], "title": "Completely Random (Any base evolution Pokémon)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "randomize_static_pokemon",
+          "label": "Static Legendaries & Gifts:",
+          "choices": [
+            { "id": "vanilla", "val": [], "title": "Vanilla (Reshiram/Zekrom, Victini, gifts stay original)" },
+            { "id": "random_similar", "val": ["Randomize", "Similar base stats"], "title": "Randomize (Static encounters randomized with comparable stats)" },
+            { "id": "chaos", "val": ["Randomize"], "title": "Full Chaos (Any Pokémon can replace static encounters)" }
+          ]
         }
       ]
     },
     {
       "num": 3,
-      "title": "3. Quality of Life & Combat",
-      "description": "Step 3: EXP modifiers and reusable TMs",
+      "title": "3. Check Pools & Dexsanity",
+      "description": "Step 3: Badges, TM/HM Items & Pokédex Catch Sanity Checks",
       "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "shuffle_badges",
+          "label": "Badge Placement:",
+          "choices": [
+            { "id": "shuffle", "title": "Shuffled (Gym Badges randomized across Unova)" },
+            { "id": "vanilla", "title": "Vanilla (Gym Badges given by their original leaders)" },
+            { "id": "anything", "title": "Any Location (Badges can be anywhere in multiworld)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "shuffle_tm_hm",
+          "label": "TM & HM Placement:",
+          "choices": [
+            { "id": "shuffle", "title": "Shuffled (TMs and HMs randomized in item pool)" },
+            { "id": "hm_with_badge", "title": "HMs with Badges (HMs awarded alongside gym badges)" },
+            { "id": "vanilla", "title": "Vanilla (TMs and HMs in original locations)" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "dropdown",
+          "option_key": "dexsanity",
+          "label": "Dexsanity (Catching Pokémon species yields multiworld items):",
+          "choices": [
+            { "id": 0, "title": "Disabled (No Pokédex catch checks)" },
+            { "id": 20, "title": "20 Species (Short Dexsanity goal)" },
+            { "id": 50, "title": "50 Species (Moderate Dexsanity goal)" },
+            { "id": 156, "title": "All Unova (All 156 regional Pokédex species)" }
+          ]
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Battle & Quality of Life",
+      "description": "Step 4: Pokémon Types, Abilities, Level Curve & EXP Multipliers",
+      "controls": [
+        {
+          "type": "dropdown",
+          "option_key": "randomize_types",
+          "label": "Randomize Pokémon Typings:",
+          "choices": [
+            { "id": "off", "val": [], "title": "Disabled (Vanilla Pokémon typings)" },
+            { "id": "random", "val": ["Randomize"], "title": "Randomize (Every species gets randomized elemental types)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "randomize_abilities",
+          "label": "Randomize Abilities:",
+          "choices": [
+            { "id": "off", "val": [], "title": "Disabled (Vanilla abilities)" },
+            { "id": "random", "val": ["Randomize"], "title": "Randomize (Pokémon gain randomized abilities)" }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "adjust_levels",
+          "label": "Level Scaling & Difficulty:",
+          "choices": [
+            { "id": "vanilla", "val": [], "title": "Vanilla Level Curve (Original in-game encounter levels)" },
+            { "id": "distance", "val": ["Wild by distance", "Trainer by distance"], "title": "Level by Distance (Levels scale based on physical distance from Nuvema Town)" },
+            { "id": "sphere", "val": ["Wild by sphere", "Trainer by sphere"], "title": "Level by Sphere (Levels scale with multiworld item progression)" }
+          ]
+        },
+        {
+          "type": "separator"
+        },
         {
           "type": "slider",
           "option_key": "exp_multiplier",
           "label": "EXP Multiplier:",
           "min": 1,
-          "max": 100,
+          "max": 5,
           "step": 1,
           "suffix": "x"
         },
         {
-          "type": "dropdown",
+          "type": "toggle",
           "option_key": "reusable_tms",
-          "label": "Reusable TMs & Move Tutors:",
-          "choices": [
-            { "id": "on", "title": "On" },
-            { "id": "yes_please", "title": "Yes, please" },
-            { "id": "of_course", "title": "Of course" },
-            { "id": "im_not_a_masochist", "title": "Absolutely" }
-          ]
+          "label": "💿 Reusable TMs (Infinite TM uses without consuming the item)"
+        }
+      ]
+    },
+    {
+      "num": 5,
+      "title": "5. Multiworld & Links",
+      "description": "Step 5: Multiworld Interactivity & DeathLink",
+      "controls": [
+        {
+          "type": "toggle",
+          "option_key": "death_link",
+          "label": "💀 DeathLink (Whiting out in battle broadcasts death to multiworld partners)"
         }
       ]
     }

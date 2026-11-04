@@ -2,6 +2,8 @@ extends Control
 
 signal closed()
 
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
+
 @onready var title_label: Label = %ItemBrowserTitle
 @onready var close_btn: Button = %ItemBrowserCloseBtn
 @onready var search_input: LineEdit = %ItemSearchInput

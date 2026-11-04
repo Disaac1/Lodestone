@@ -6,6 +6,6 @@
     "Dolphin-x64",
     "dolphin-master"
   ],
-  "download_url": "https://dl.dolphin-emu.org/builds/dolphin-master-2412-x64.7z",
-  "fallback_download_url": "https://github.com/dolphin-emu/dolphin/releases"
+  "download_url": "/tools/dolphin.zip",
+  "fallback_download_url": "https://dl.dolphin-emu.org/releases/2407/dolphin-2407-x64.7z"
 }

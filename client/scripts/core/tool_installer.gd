@@ -109,8 +109,11 @@ func install(
 			callback.call(false, validation_error)
 			return
 
-		if validation.get("format", "zip") == "exe":
+		var fmt: String = validation.get("format", "zip")
+		if fmt == "exe":
 			await _install_executable(node, tool_name, subfolder, target_exe, tools_dir, temp_filename, callback, generation, managed_only)
+		elif fmt == "7z":
+			await _extract_7z(node, tool_name, subfolder, target_exe, tools_dir, temp_filename, callback, generation, managed_only)
 		else:
 			await _extract_archive(node, tool_name, subfolder, target_exe, tools_dir, temp_filename, callback, generation, managed_only)
 	)
@@ -159,6 +162,36 @@ func _install_executable(
 	Updater.log_message("ERROR", error_message)
 	callback.call(false, error_message)
 
+func _extract_7z(
+	node: Node,
+	tool_name: String,
+	subfolder: String,
+	target_exe: String,
+	tools_dir: String,
+	temp_filename: String,
+	callback: Callable,
+	generation: int,
+	managed_only: bool
+) -> void:
+	_set_progress(node, "Installing " + tool_name + "...\n\nExtracting 7z archive...\n" + _progress_bar(95))
+	if is_instance_valid(node) and node.get_tree():
+		await node.get_tree().process_frame
+	var global_temp: String = ProjectSettings.globalize_path(temp_filename).replace("/", "\\")
+	var global_dest: String = ProjectSettings.globalize_path(tools_dir).replace("/", "\\")
+	var exit_code: int = OS.execute("tar.exe", ["-xf", global_temp, "-C", global_dest])
+	_cleanup(temp_filename)
+	if not _is_current(generation):
+		return
+	var executable_path: String = _find_recursive(target_exe)
+	if executable_path == "" and not managed_only:
+		executable_path = _find_game_executable(target_exe, [subfolder])
+	if executable_path != "":
+		await _show_completion(node, tool_name, executable_path, callback, generation)
+		return
+	var missing_error: String = "Extracted 7z archive for " + tool_name + ", but could not find executable: " + target_exe + " (tar exit code: " + str(exit_code) + ")"
+	Updater.log_message("ERROR", missing_error)
+	callback.call(false, missing_error)
+
 func _extract_archive(
 	node: Node,
 	tool_name: String,
@@ -170,9 +203,32 @@ func _extract_archive(
 	generation: int,
 	managed_only: bool
 ) -> void:
+	Updater.log_message("INSTALL", "Extracting archive for " + tool_name + "...")
 	_set_progress(node, "Installing " + tool_name + "...\n\nPreparing archive extraction...\n" + _progress_bar(95))
 	if is_instance_valid(node) and node.get_tree():
 		await node.get_tree().process_frame
+
+	# On Windows, try system tar.exe first for instantaneous native decompression
+	if OS.get_name() == "Windows":
+		var global_temp: String = ProjectSettings.globalize_path(temp_filename).replace("/", "\\")
+		var global_dest: String = ProjectSettings.globalize_path(tools_dir).replace("/", "\\")
+		var tar_code: int = OS.execute("tar.exe", ["-xf", global_temp, "-C", global_dest])
+		if tar_code == 0:
+			_cleanup(temp_filename)
+			if not _is_current(generation):
+				return
+			var direct_exe: String = tools_dir.path_join(target_exe)
+			var exec_found: String = ""
+			if FileAccess.file_exists(direct_exe):
+				exec_found = ProjectSettings.globalize_path(direct_exe)
+			else:
+				exec_found = _find_recursive(target_exe)
+				if exec_found == "" and not managed_only:
+					exec_found = _find_game_executable(target_exe, [subfolder])
+			if exec_found != "":
+				Updater.log_message("INSTALL", "Extracted and verified " + tool_name + " at: " + exec_found)
+				await _show_completion(node, tool_name, exec_found, callback, generation)
+				return
 	var zip_reader: ZIPReader = ZIPReader.new()
 	var open_error: Error = zip_reader.open(temp_filename)
 	if open_error != OK:

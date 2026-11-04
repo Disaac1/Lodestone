@@ -10,7 +10,7 @@
     "pick_num_characters": 2,
     "num_chars_goal": 0,
     "lock_characters": "locked_random",
-    "unlocked_character": "",
+    "unlocked_character": "Ironclad",
     "ascension": 1,
     "final_act": false,
     "downfall": false,
@@ -23,6 +23,42 @@
     "death_link": 0,
     "chatty_mc": true
   },
+  "check_calculator": {
+    "base_count": 15,
+    "base_label": "Act & Boss Victories",
+    "modifiers": [
+      {
+        "key": "campfire_sanity",
+        "label": "Campfire Sanity",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "shop_sanity",
+        "label": "Shop Sanity",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "gold_sanity",
+        "label": "Gold Sanity",
+        "values": { "true": 15 }
+      },
+      {
+        "key": "potion_sanity",
+        "label": "Potion Sanity",
+        "values": { "true": 12 }
+      },
+      {
+        "key": "key_sanity",
+        "label": "Key Sanity",
+        "values": { "true": 3 }
+      },
+      {
+        "key": "final_act",
+        "label": "Act 4 Corrupt Heart",
+        "values": { "true": 3 }
+      }
+    ]
+  },
   "required_schema_keys": [
     "characters",
     "pick_num_characters",
@@ -34,28 +70,18 @@
     {
       "num": 1,
       "title": "1. Character Roster & Goals",
-      "description": "Step 1: Choose characters in the pool, how many you play, and win condition",
+      "description": "Step 1: Choose character roster, heroes played, and victory condition",
       "controls": [
         {
-          "type": "card_grid",
-          "option_key": "pick_num_characters",
-          "columns": 3,
+          "type": "multi_select",
+          "option_key": "characters",
+          "label": "Character Pool (Select heroes allowed in your climb):",
+          "columns": 4,
           "items": [
-            {
-              "id": 1,
-              "title": "\u26a1 Solo Climber (1 Hero)",
-              "desc": "Focus entirely on one chosen hero's deck and run."
-            },
-            {
-              "id": 2,
-              "title": "\u2694\ufe0f Duo Climb (2 Heroes)",
-              "desc": "Standard multiworld experience with 2 rotating character pools."
-            },
-            {
-              "id": 4,
-              "title": "\ud83d\udc51 All Four Heroes",
-              "desc": "Play all base classes (Ironclad, Silent, Defect, Watcher)."
-            }
+            { "id": "Ironclad", "title": "🛡️ Ironclad" },
+            { "id": "Silent", "title": "🗡️ Silent" },
+            { "id": "Defect", "title": "⚡ Defect" },
+            { "id": "Watcher", "title": "👁️ Watcher" }
           ]
         },
         {
@@ -86,16 +112,31 @@
           "choices": [
             {
               "id": "unlocked",
-              "title": "All Unlocked (Play immediately)"
+              "title": "🔓 All Unlocked (Play all picked heroes immediately)"
             },
             {
               "id": "locked_random",
-              "title": "Locked Random (Find unlocks in multiworld)"
+              "title": "🎲 Locked Random (Unlock heroes via multiworld items)"
             },
             {
               "id": "locked_fixed",
-              "title": "Locked Fixed (Start with 1 chosen hero)"
+              "title": "🔒 Locked Fixed (Start with 1 chosen hero below)"
             }
+          ]
+        },
+        {
+          "type": "dropdown",
+          "option_key": "unlocked_character",
+          "label": "Starting Unlocked Character (if Locked Fixed):",
+          "condition": {
+            "option_key": "lock_characters",
+            "equals": "locked_fixed"
+          },
+          "choices": [
+            { "id": "Ironclad", "title": "Ironclad" },
+            { "id": "Silent", "title": "Silent" },
+            { "id": "Defect", "title": "Defect" },
+            { "id": "Watcher", "title": "Watcher" }
           ]
         }
       ]
@@ -115,98 +156,107 @@
           "suffix": " Ascension"
         },
         {
-          "type": "checkbox",
+          "type": "dropdown",
           "option_key": "final_act",
-          "label": "Final Act (Act 4 Heart)",
-          "desc": "Require clearing Act 4 and the Corrupt Heart for victory."
+          "label": "Final Boss Encounter:",
+          "choices": [
+            { "id": false, "title": "👑 Act 3 Boss (Standard Victory)" },
+            { "id": true, "title": "❤️ Act 4 / Corrupt Heart (Extended Run)" }
+          ]
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "downfall",
-          "label": "Downfall Mod Compatibility",
-          "desc": "Enable Downfall villain characters and boss progression if mod is installed."
+          "label": "😈 Downfall Mod Compatibility (Play as Villains if mod installed)"
         }
       ]
     },
     {
       "num": 3,
-      "title": "3. Sanity & Check Pool",
-      "description": "Step 3: Shuffle campfire actions, gold, potions, and shop slots into multiworld",
+      "title": "3. Sanity Pool",
+      "description": "Step 3: Check Density Presets & Individual Sanity Overrides",
       "controls": [
         {
-          "type": "checkbox",
-          "option_key": "campfire_sanity",
-          "label": "Campfire Sanity",
-          "desc": "Shuffle Rest and Smith abilities at campsites per Act into the multiworld."
-        },
-        {
-          "type": "checkbox",
-          "option_key": "gold_sanity",
-          "label": "Gold Sanity",
-          "desc": "Adds 27 gold drop checks per character to the multiworld pool."
-        },
-        {
-          "type": "checkbox",
-          "option_key": "potion_sanity",
-          "label": "Potion Sanity",
-          "desc": "Adds 9 potion drop locations per character to the multiworld pool."
-        },
-        {
-          "type": "checkbox",
-          "option_key": "key_sanity",
-          "label": "Key Sanity",
-          "desc": "Shuffle Emerald, Ruby, and Sapphire keys into the item pool."
-        },
-        {
-          "type": "checkbox",
-          "option_key": "shop_sanity",
-          "label": "Shop Sanity",
-          "desc": "Shuffle card, relic, and potion shop slots into the item pool."
-        },
-        {
-          "type": "dropdown",
-          "option_key": "shop_sanity_costs",
-          "label": "Shop Sanity Pricing Tier:",
-          "choices": [
+          "type": "preset_grid",
+          "columns": 3,
+          "presets": [
             {
-              "id": "discount_tiered",
-              "title": "Discount Tiered (50% vanilla price - Recommended)"
+              "id": "minimal",
+              "title": "🏰 Bosses & Campfires",
+              "desc": "Minimal check density. Fast-paced run focused on boss relics and campfires.",
+              "values": {
+                "campfire_sanity": true,
+                "gold_sanity": false,
+                "potion_sanity": false,
+                "key_sanity": false,
+                "shop_sanity": false
+              }
             },
             {
-              "id": "super_discount_tiered",
-              "title": "Super Discount (20% vanilla price)"
+              "id": "standard",
+              "title": "⚖️ Standard Spire",
+              "desc": "Balanced multiworld with campfires, gold drops, and key sanity.",
+              "values": {
+                "campfire_sanity": true,
+                "gold_sanity": true,
+                "potion_sanity": false,
+                "key_sanity": true,
+                "shop_sanity": false
+              }
             },
             {
-              "id": "fixed",
-              "title": "Fixed Price (15 gold per item)"
-            },
-            {
-              "id": "tiered",
-              "title": "Vanilla Full Price"
+              "id": "full",
+              "title": "🌌 Full Sanity",
+              "desc": "Everything is randomized: shops, potions, gold, keys, and campfires.",
+              "values": {
+                "campfire_sanity": true,
+                "gold_sanity": true,
+                "potion_sanity": true,
+                "key_sanity": true,
+                "shop_sanity": true
+              }
             }
           ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "campfire_sanity",
+          "label": "🔥 Campfire Sanity (Shuffle Rest and Smith abilities into multiworld)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "gold_sanity",
+          "label": "💰 Gold Sanity (Gold rewards drop multiworld items)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "key_sanity",
+          "label": "🗝️ Key Sanity (Ruby, Emerald, and Sapphire Keys in item pool)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "shop_sanity",
+          "label": "🛒 Shop Sanity (Relics and cards in merchant shops are multiworld checks)"
         }
       ]
     },
     {
       "num": 4,
-      "title": "4. Death Link & Notifications",
-      "description": "Step 4: Configure multiplayer Death Link and chat notifications",
+      "title": "4. Multiworld & Links",
+      "description": "Step 4: Multiplayer Notifications & DeathLink",
       "controls": [
         {
-          "type": "slider",
+          "type": "toggle",
           "option_key": "death_link",
-          "label": "Death Link Percentage (0 = Disabled, 1-100% chance):",
-          "min": 0,
-          "max": 100,
-          "step": 25,
-          "suffix": "%"
+          "label": "💀 DeathLink (Dying sends death to your multiworld partners)"
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "chatty_mc",
-          "label": "Chatty Merchant / Characters",
-          "desc": "In-game characters give humorous dialogue reactions to Archipelago multiworld events."
+          "label": "💬 Chatty MC (Broadcast chat notifications on relic & card pickups)"
         }
       ]
     }

@@ -51,5 +51,5 @@ luigismansion_options:
   iso_file: "C:/Infastructure/wayfinder/sandbox_userdata/Godot/app_userdata/Wayfinder/games/luigis_mansion/Luigi's Mansion (USA).iso"
 
   dolphin_settings:
-    path: "C:/Users/hompc/Desktop/Dolphin-x64/Dolphin.exe"
-    auto_start: true
+	path: "C:/Users/hompc/Desktop/Dolphin-x64/Dolphin.exe"
+	auto_start: true

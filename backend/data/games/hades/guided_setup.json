@@ -2,20 +2,69 @@
   "game_title": "Hades",
   "default_config": {
     "heat_system": 0,
+    "hades_defeats_needed": 1,
     "location_system": 0,
+    "automatic_rooms_finish_on_hades_defeat": false,
+    "initial_weapon": 0,
     "weaponsanity": true,
+    "hidden_aspectsanity": false,
     "keepsakesanity": false,
+    "mirrorsanity": false,
     "fatesanity": false,
     "storesanity": false,
-    "mirrorsanity": false,
     "fishsanity": false,
     "trovesanity": false,
-    "hidden_aspectsanity": false,
+    "filler_trap_percentage": 0,
+    "reverse_order_em": true,
     "death_link": false,
     "death_link_amnesty": 1,
-    "reverse_order_em": true,
-    "ignore_greece_deaths": true,
-    "automatic_rooms_finish_on_hades_defeat": false
+    "ignore_greece_deaths": true
+  },
+  "check_calculator": {
+    "base_count": 40,
+    "base_label": "Underworld Chamber & Boss Clears",
+    "modifiers": [
+      {
+        "key": "weaponsanity",
+        "label": "Weaponsanity",
+        "values": { "true": 5 }
+      },
+      {
+        "key": "hidden_aspectsanity",
+        "label": "Hidden Aspectsanity",
+        "values": { "true": 6 }
+      },
+      {
+        "key": "keepsakesanity",
+        "label": "Keepsakesanity",
+        "values": { "true": 25 }
+      },
+      {
+        "key": "mirrorsanity",
+        "label": "Mirrorsanity",
+        "values": { "true": 24 }
+      },
+      {
+        "key": "fatesanity",
+        "label": "Fatesanity (Prophecies)",
+        "values": { "true": 55 }
+      },
+      {
+        "key": "storesanity",
+        "label": "Storesanity (Contractor)",
+        "values": { "true": 20 }
+      },
+      {
+        "key": "fishsanity",
+        "label": "Fishsanity",
+        "values": { "true": 10 }
+      },
+      {
+        "key": "trovesanity",
+        "label": "Trovesanity",
+        "values": { "true": 15 }
+      }
+    ]
   },
   "required_schema_keys": [
     "heat_system",
@@ -26,28 +75,28 @@
   "steps": [
     {
       "num": 1,
-      "title": "1. Game Mode & Heat System",
-      "description": "Step 1: Choose Pact of Punishment heat handling and room check clearing mechanics",
+      "title": "1. Run Goal & Heat",
+      "description": "Step 1: Choose Victory Requirements, Location System & Heat Mechanics",
       "controls": [
         {
           "type": "card_grid",
-          "option_key": "heat_system",
+          "option_key": "location_system",
           "columns": 3,
           "items": [
             {
               "id": 0,
-              "title": "🔄 Reverse Heat (Default)",
-              "desc": "Start with high pacts of punishment; find pact reduction items in the multiworld."
+              "title": "🚪 Room Clears",
+              "desc": "Clearing any room at each depth gives a location check once."
             },
             {
               "id": 1,
-              "title": "🔥 Minimal Heat",
-              "desc": "Start with high pacts that can never be reduced. For true Underworld masochists."
+              "title": "🎯 Score / Boss Clears",
+              "desc": "Accumulate depth points & defeat underworld bosses for checks."
             },
             {
               "id": 2,
-              "title": "⚔️ Vanilla Heat",
-              "desc": "Standard Hades heat mechanics without randomized pact reduction items."
+              "title": "⚔️ Room Weapon Based",
+              "desc": "Clearing rooms with specific weapons yields individual checks."
             }
           ]
         },
@@ -55,96 +104,176 @@
           "type": "separator"
         },
         {
-          "type": "choice",
-          "option_key": "location_system",
-          "label": "Location / Room Check System:",
-          "options": [
-            { "id": 0, "name": "Room Based (Clearing any room at depth gives a check once)" },
-            { "id": 1, "name": "Score Based (Accumulate depth score to unlock milestone checks)" },
-            { "id": 2, "name": "Room Weapon Based (Clearing rooms with each specific weapon yields checks)" }
+          "type": "dropdown",
+          "option_key": "heat_system",
+          "label": "Pact of Punishment Heat System:",
+          "choices": [
+            { "id": 0, "title": "🔄 Reverse Heat (Start high; find pact reduction items in multiworld)" },
+            { "id": 1, "title": "🔥 Minimal Heat (Pacts stay constant; cannot be reduced)" },
+            { "id": 2, "title": "⚔️ Vanilla Heat (Standard in-game pact selection)" }
           ]
         },
         {
-          "type": "checkbox",
+          "type": "slider",
+          "option_key": "hades_defeats_needed",
+          "label": "Hades Defeats Needed for Victory:",
+          "min": 1,
+          "max": 10,
+          "step": 1,
+          "suffix": " Defeat(s)"
+        },
+        {
+          "type": "toggle",
           "option_key": "automatic_rooms_finish_on_hades_defeat",
-          "label": "Auto-Collect Room Checks on Hades Defeat (Instantly rewards remaining room checks upon clearing the run)"
+          "label": "⚡ Auto-Collect Remaining Room Checks on Hades Defeat"
         }
       ]
     },
     {
       "num": 2,
-      "title": "2. Sanity Checks & Pools",
-      "description": "Step 2: Choose which Underworld collectibles, weapons, and systems are randomized into the multiworld",
+      "title": "2. Weapons & Pact Logic",
+      "description": "Step 2: Starting Armament, Boss Pacts and Trap Percentages",
       "controls": [
         {
-          "type": "checkbox",
-          "option_key": "weaponsanity",
-          "label": "Weaponsanity (Infernal Arms are randomized items; unlocking in Skelly's room is a check)"
+          "type": "dropdown",
+          "option_key": "initial_weapon",
+          "label": "Starting Infernal Arm:",
+          "choices": [
+            { "id": 0, "title": "🗡️ Stygian Blade (Sword)" },
+            { "id": 1, "title": "🏹 Heart-Seeker Bow" },
+            { "id": 2, "title": "🔱 Eternal Spear" },
+            { "id": 3, "title": "🛡️ Shield of Chaos" },
+            { "id": 4, "title": "🥊 Twin Fists of Malphon" },
+            { "id": 5, "title": "🔫 Adamant Rail (Gun)" }
+          ]
         },
         {
-          "type": "checkbox",
-          "option_key": "hidden_aspectsanity",
-          "label": "Hidden Aspectsanity (Hidden weapon aspects must be unlocked in the multiworld)"
+          "type": "separator"
         },
         {
-          "type": "checkbox",
-          "option_key": "keepsakesanity",
-          "label": "Keepsakesanity (Olympian & Chthonic keepsakes are randomized items in the multiworld)"
+          "type": "toggle",
+          "option_key": "reverse_order_em",
+          "label": "👑 Reverse Order Extreme Measures (Fight hardest boss variations first)"
         },
         {
-          "type": "checkbox",
-          "option_key": "mirrorsanity",
-          "label": "MirrorSanity (Mirror of Night talent upgrades are randomized items)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "fatesanity",
-          "label": "FateSanity (Fated List of Minor Prophecies tasks are location checks)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "storesanity",
-          "label": "StoreSanity (Important House Contractor items are randomized in the pool)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "fishsanity",
-          "label": "FishSanity (Catching each Underworld fish for the first time is a location check)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "trovesanity",
-          "label": "TroveSanity (Infernal Trove challenges in each biome act as location checks)"
+          "type": "slider",
+          "option_key": "filler_trap_percentage",
+          "label": "Filler Trap Weight (Percentage of junk items replaced with traps):",
+          "min": 0,
+          "max": 20,
+          "step": 5,
+          "suffix": "%"
         }
       ]
     },
     {
       "num": 3,
-      "title": "3. DeathLink & Balancing",
-      "description": "Step 3: Configure multiworld death consequences, amnesty counter, and boss modifiers",
+      "title": "3. Check Pools & Sanity",
+      "description": "Step 3: Weaponsanity and Underworld Location Expansion Checks",
       "controls": [
         {
-          "type": "checkbox",
+          "type": "toggle",
+          "option_key": "weaponsanity",
+          "label": "Weaponsanity (Unlock infernal arms via multiworld items)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "hidden_aspectsanity",
+          "label": "Hidden Aspectsanity (Hidden weapon aspects in item pool)"
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "preset_grid",
+          "columns": 2,
+          "presets": [
+            {
+              "id": "core",
+              "title": "🏛️ Core Only",
+              "desc": "Keepsakes and Mirror talents randomized. Fast and focused multiworld run.",
+              "values": {
+                "keepsakesanity": true,
+                "mirrorsanity": true,
+                "fatesanity": false,
+                "storesanity": false,
+                "fishsanity": false,
+                "trovesanity": false
+              }
+            },
+            {
+              "id": "full_underworld",
+              "title": "🌌 Full Underworld",
+              "desc": "All expansion checks active: Fated List, Contractor store, fish, and troves.",
+              "values": {
+                "keepsakesanity": true,
+                "mirrorsanity": true,
+                "fatesanity": true,
+                "storesanity": true,
+                "fishsanity": true,
+                "trovesanity": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "separator"
+        },
+        {
+          "type": "toggle",
+          "option_key": "keepsakesanity",
+          "label": "Keepsakesanity (Olympian and Chthonic keepsakes in pool)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "mirrorsanity",
+          "label": "Mirrorsanity (Mirror of Night talent upgrades in pool)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "fatesanity",
+          "label": "Fatesanity (Fated List prophecy milestone checks)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "storesanity",
+          "label": "Storesanity (House Contractor upgrades in pool)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "fishsanity",
+          "label": "Fishsanity (First catch of each underworld fish species is a check)"
+        },
+        {
+          "type": "toggle",
+          "option_key": "trovesanity",
+          "label": "Trovesanity (Infernal Trove challenge clears are checks)"
+        }
+      ]
+    },
+    {
+      "num": 4,
+      "title": "4. Multiworld & DeathLink",
+      "description": "Step 4: DeathLink Configuration & Amnesty",
+      "controls": [
+        {
+          "type": "toggle",
           "option_key": "death_link",
-          "label": "Enable DeathLink (Zagreus deaths broadcast to the multiworld and vice versa)"
+          "label": "💀 Enable DeathLink (Zagreus deaths broadcast to the multiworld)"
         },
         {
           "type": "slider",
           "option_key": "death_link_amnesty",
-          "label": "DeathLink Amnesty (Deaths required before broadcasting a DeathLink):",
-          "min": 1,
-          "max": 10,
-          "step": 1
+          "label": "DeathLink Amnesty (Deaths allowed before triggering DeathLink):",
+          "min": 0,
+          "max": 5,
+          "step": 1,
+          "suffix": " death(s)"
         },
         {
-          "type": "checkbox",
+          "type": "toggle",
           "option_key": "ignore_greece_deaths",
-          "label": "Ignore Greece Deaths (Story deaths on the surface will not trigger DeathLink)"
-        },
-        {
-          "type": "checkbox",
-          "option_key": "reverse_order_em",
-          "label": "Reverse Order Extreme Measures (Extreme Measures 1 applies to Hades instead of the Furies for smoother scaling)"
+          "label": "🌅 Ignore Greece Deaths (Story deaths on the surface don't trigger DeathLink)"
         }
       ]
     }

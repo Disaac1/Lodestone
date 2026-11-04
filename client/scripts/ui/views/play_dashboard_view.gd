@@ -1,6 +1,7 @@
 extends VBoxContainer
 
 # --- DEPENDENCIES ---
+const UITheme = preload("res://scripts/ui/ui_theme.gd")
 const YamlBuilder = preload("res://scripts/core/yaml_builder.gd")
 const DashboardGameCardScene = preload("res://scenes/components/dashboard_game_card.tscn")
 
@@ -118,7 +119,6 @@ func render_play_dashboard(p_launcher: RefCounted = null, p_local_selected_games
 	update_server_status()
 	update_checks_progress_ui()
 		
-	print("[PlayDashboardView] Rendering Play Dashboard: displaying %d cards (show_only_mine=%s, total_in_room=%d)" % [display_entries.size(), str(show_only_mine), all_player_game_entries.size()])
 	if display_entries.is_empty():
 		var empty_label: Label = Label.new()
 		empty_label.text = "No games assigned in this multiworld session."
@@ -128,10 +128,13 @@ func render_play_dashboard(p_launcher: RefCounted = null, p_local_selected_games
 		
 	for entry in display_entries:
 		var card: PanelContainer = create_game_grid_card(entry.game_name, entry.player_name, entry.is_local)
-		games_grid_container.add_child(card)
+		if is_instance_valid(card) and card.get_parent() != games_grid_container:
+			games_grid_container.add_child(card)
 
 func create_game_grid_card(game_name: String, owner_name: String = "", is_local: bool = true) -> PanelContainer:
 	var card = DashboardGameCardScene.instantiate()
+	if is_instance_valid(games_grid_container) and not card.is_inside_tree():
+		games_grid_container.add_child(card)
 	var total_games_count: int = local_selected_games.size() if not local_selected_games.is_empty() else 1
 	var custom_tag_slot: String = launcher.get_preset(game_name).get("short_tag", "") if launcher else ""
 	var p_name: String = owner_name if owner_name != "" else NetworkManager.player_name
@@ -140,7 +143,6 @@ func create_game_grid_card(game_name: String, owner_name: String = "", is_local:
 	var status_info = launcher.get_game_launch_status(game_name) if launcher else {}
 	var checks_info = NetworkManager.checks.get("games", {}).get(game_name, {})
 	
-	print("[PlayDashboardView] Creating grid card for '%s' (Owner: '%s', Local: %s)" % [game_name, p_name, str(is_local)])
 	card.setup(game_name, slot_name_str, preset, status_info, checks_info, p_name, is_local)
 	if is_local:
 		card.launch_pressed.connect(func(g_name: String):
